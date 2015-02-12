@@ -146,12 +146,6 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         foreach ($allInputDivisions as $key => $properties) {
             $this->getLogger()->debug('checking division "' . $properties['Comment']);
 
-            if (!$this->firstCheckProperty($key, $properties, $allInputDivisions)) {
-                $this->getLogger()->debug('first check failed on key "' . $key . '" -> skipped');
-
-                continue;
-            }
-
             if (!in_array($key, array('DefaultProperties', '*'))) {
                 $parent = $allInputDivisions[$properties['Parent']];
             } else {
