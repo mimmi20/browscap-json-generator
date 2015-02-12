@@ -22,6 +22,8 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        self::markTestSkipped('not read yet');
+
         $this->logger = new Logger('browscapTest', array(new NullHandler()));
     }
 

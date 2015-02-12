@@ -5,8 +5,6 @@ namespace Browscap\Generator;
 use Browscap\Data\DataCollection;
 use Browscap\Data\Expander;
 use Browscap\Helper\CollectionCreator;
-use Browscap\Writer\WriterCollection;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class BrowscapJsonGenerator
@@ -51,29 +49,29 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
         $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
 
-        $logger->info('started creating a data collection');
+        $this->getLogger()->info('started creating a data collection');
 
         $dataCollection = new DataCollection($version);
-        $dataCollection->setLogger($logger);
+        $dataCollection->setLogger($this->getLogger());
 
         $collectionCreator = $this->getCollectionCreator();
 
         $collectionCreator
-            ->setLogger($logger)
+            ->setLogger($this->getLogger())
             ->setDataCollection($dataCollection)
         ;
 
         $collection = $collectionCreator->createDataCollection($this->resourceFolder);
 
-        $logger->info('started initialisation of expander');
+        $this->getLogger()->info('started initialisation of expander');
 
         $expander = new Expander();
         $expander
             ->setDataCollection($collection)
-            ->setLogger($logger)
+            ->setLogger($this->getLogger())
         ;
 
-        $logger->info('finished initialisation of expander');
+        $this->getLogger()->info('finished initialisation of expander');
 
         $comments = array(
             'Provided courtesy of http://browscap.org/',
@@ -85,17 +83,17 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             'Discuss on Google Groups <https://groups.google.com/forum/#!forum/browscap>.'
         );
 
-        $logger->info('finished creating a data collection');
+        $this->getLogger()->info('finished creating a data collection');
 
-        $this->logger->debug('build output for processed json file');
+        $this->getLogger()->debug('build output for processed json file');
 
         $division      = $collection->getDefaultProperties();
         $ua            = $division->getUserAgents();
         $allProperties = array('Parent') + array_keys($ua[0]['properties']);
 
-        $this->logger->debug('rendering all divisions');
+        $this->getLogger()->debug('rendering all divisions');
 
-        $allInputDivisions = array();
+        $allInputDivisions = array('DefaultProperties' => $ua[0]['properties']);
 
         foreach ($collection->getDivisions() as $division) {
             /** @var \Browscap\Data\Division $division */
@@ -104,7 +102,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             // versions
             $sections = $expander->expand($division, $division->getName());
 
-            $logger->info('checking division ' . $division->getName());
+            $this->getLogger()->info('checking division ' . $division->getName());
 
             foreach (array_keys($sections) as $sectionName) {
                 $section = $sections[$sectionName];
@@ -119,7 +117,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
                 $divisionName = $expander->parseProperty($division->getName(), $majorVer, $minorVer);
 
-                $logger->info('handle division ' . $divisionName);
+                $this->getLogger()->info('handle division ' . $divisionName);
 
                 $encodedSections = json_encode($sections);
                 $encodedSections = $expander->parseProperty($encodedSections, $majorVer, $minorVer);
@@ -128,7 +126,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
                 foreach (array_keys($sectionsWithVersion) as $sectionName) {
                     if (array_key_exists($sectionName, $allInputDivisions)) {
-                        $logger->debug('tried to add section "' . $sectionName . '" more than once -> skipped');
+                        $this->getLogger()->debug('tried to add section "' . $sectionName . '" more than once -> skipped');
                         continue;
                     }
 
@@ -144,10 +142,10 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $allDivisions = array();
 
         foreach ($allInputDivisions as $key => $properties) {
-            $this->logger->debug('checking division "' . $properties['Parent']);
+            $this->getLogger()->debug('checking division "' . $properties['Comment']);
 
             if (!$this->firstCheckProperty($key, $properties, $allInputDivisions)) {
-                $this->logger->debug('first check failed on key "' . $key . '" -> skipped');
+                $this->getLogger()->debug('first check failed on key "' . $key . '" -> skipped');
 
                 continue;
             }
@@ -193,6 +191,9 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                     continue;
                 }
 
+                $value       = $propertiesToOutput[$property];
+                $valueOutput = $value;
+/*
                 if (!CollectionParser::isOutputProperty($property)) {
                     continue;
                 }
@@ -201,8 +202,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                     continue;
                 }
 
-                $value       = $propertiesToOutput[$property];
-                $valueOutput = $value;
+
 
                 switch (CollectionParser::getPropertyType($property)) {
                     case CollectionParser::TYPE_BOOLEAN:
@@ -219,7 +219,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                         // nothing t do here
                         break;
                 }
-
+/**/
                 $allDivisions[$key][$property] = $valueOutput;
 
                 unset($value, $valueOutput);
@@ -249,7 +249,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
         $tmp_user_agents = array_keys($allDivisions);
 
-        $this->logger->debug('sort useragent rules by length');
+        $this->getLogger()->debug('sort useragent rules by length');
 
         $fullLength    = array();
         $reducedLength = array();
@@ -268,11 +268,11 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         unset($fullLength, $reducedLength);
 
         $user_agents_keys = array_flip($tmp_user_agents);
-        $properties_keys  = array_flip($allProperties);
+        //$properties_keys  = array_flip($allProperties);
 
         $tmp_patterns = array();
 
-        $this->logger->debug('process all useragents');
+        $this->getLogger()->debug('process all useragents');
 
         foreach ($tmp_user_agents as $i => $user_agent) {
             if (empty($allDivisions[$user_agent]['Comment'])
@@ -307,10 +307,11 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
             $browser = array();
             foreach ($allDivisions[$user_agent] as $property => $value) {
+                /*
                 if (!isset($properties_keys[$property]) || !CollectionParser::isOutputProperty($property)) {
                     continue;
                 }
-
+                /**/
                 $browser[$property] = $value;
             }
 
@@ -323,7 +324,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         ksort($output['userAgents']);
         ksort($output['browsers']);
 
-        $this->logger->debug('process all patterns');
+        $this->getLogger()->debug('process all patterns');
 
         foreach ($tmp_patterns as $pattern => $pattern_data) {
             if (is_int($pattern_data) || is_string($pattern_data)) {
@@ -343,46 +344,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         // reducing memory usage by unsetting $tmp_user_agents
         unset($tmp_patterns);
 
-        return json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT);
-    }
-
-    /**
-     * renders the version information
-     *
-     * @return array
-     */
-    private function renderVersion()
-    {
-        $this->logger->debug('rendering version information');
-
-        $versionData = $this->getVersionData();
-
-        if (!isset($versionData['version'])) {
-            $versionData['version'] = '0';
-        }
-
-        if (!isset($versionData['released'])) {
-            $versionData['released'] = '';
-        }
-
-        return array(
-            'Version'  => $versionData['version'],
-            'Released' => $versionData['released'],
-        );
-    }
-
-    /**
-     * renders all found useragents into a string
-     *
-     * @param array[] $allInputDivisions
-     * @param array   $allProperties
-     *
-     * @throws \InvalidArgumentException
-     * @return string
-     */
-    private function render(array $allInputDivisions, array $allProperties)
-    {
-
+        file_put_contents($iniFile, json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT));
     }
 
     /**
@@ -459,7 +421,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      */
     protected function firstCheckProperty($key, array $properties, array $allDivisions)
     {
-        $this->logger->debug('check if all required propeties are available');
+        $this->getLogger()->debug('check if all required propeties are available');
 
         if (!isset($properties['Version'])) {
             throw new \UnexpectedValueException('Version property not found for key "' . $key . '"');
