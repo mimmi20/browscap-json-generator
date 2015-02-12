@@ -126,7 +126,9 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
                 foreach (array_keys($sectionsWithVersion) as $sectionName) {
                     if (array_key_exists($sectionName, $allInputDivisions)) {
-                        $this->getLogger()->debug('tried to add section "' . $sectionName . '" more than once -> skipped');
+                        $this->getLogger()->debug(
+                            'tried to add section "' . $sectionName . '" more than once -> skipped'
+                        );
                         continue;
                     }
 
