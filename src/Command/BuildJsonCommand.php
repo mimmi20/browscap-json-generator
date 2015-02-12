@@ -40,20 +40,20 @@ class BuildJsonCommand extends Command
     /**
      * @var string
      */
-    const DEFAULT_BUILD_FOLDER = '/../../../build';
+    const DEFAULT_BUILD_FOLDER = 'vendor/browscap/browscap/build';
 
     /**
      * @var string
      */
-    const DEFAULT_RESOURCES_FOLDER = '/../../../resources';
+    const DEFAULT_RESOURCES_FOLDER = 'vendor/browscap/browscap/resources';
 
     /**
      * Configures the current command.
      */
     protected function configure()
     {
-        $defaultBuildFolder    = __DIR__ . self::DEFAULT_BUILD_FOLDER;
-        $defaultResourceFolder = __DIR__ . self::DEFAULT_RESOURCES_FOLDER;
+        $defaultBuildFolder    = self::DEFAULT_BUILD_FOLDER;
+        $defaultResourceFolder = self::DEFAULT_RESOURCES_FOLDER;
 
         $this
             ->setName('build')
@@ -110,7 +110,11 @@ class BuildJsonCommand extends Command
             $input->getOption('resources'),
             $buildFolder
         );
-        $buildJsonGenerator->run($input->getArgument('version'));
+
+        $buildJsonGenerator
+            ->setLogger($logger)
+            ->run($input->getArgument('version'), $buildFolder . '/browscap.preprocessed.json')
+        ;
 
         $logger->info('Build done.');
     }

@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "da2013e0e6e4877147d20895d9ce110b",
+    "hash": "497e87b74de19cda00194ea566ae6d99",
     "packages": [
         {
             "name": "browscap/browscap",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/browscap/browscap.git",
-                "reference": "9d6a61746f5aed1f1935bdf2fc7854598189e31e"
+                "reference": "20905e7331504c52af3cc525a6e8209573539f64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/browscap/browscap/zipball/9d6a61746f5aed1f1935bdf2fc7854598189e31e",
-                "reference": "9d6a61746f5aed1f1935bdf2fc7854598189e31e",
+                "url": "https://api.github.com/repos/browscap/browscap/zipball/20905e7331504c52af3cc525a6e8209573539f64",
+                "reference": "20905e7331504c52af3cc525a6e8209573539f64",
                 "shasum": ""
             },
             "require": {
@@ -71,7 +71,7 @@
             "keywords": [
                 "Browscap"
             ],
-            "time": "2015-02-11 09:03:21"
+            "time": "2015-02-12 11:00:28"
         },
         {
             "name": "monolog/monolog",
