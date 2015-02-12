@@ -1,0 +1,40 @@
+{
+    "name": "mimmi20/browscap-json-generator",
+    "type": "application",
+    "description": "Browser Capabilities Tools",
+    "keywords": ["browscap"],
+    "homepage": "https://github.com/mimmi20/browscap-json-generator",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thomas Müller",
+            "homepage": "https://github.com/mimmi20",
+            "role": "Developer"
+        },
+        {
+            "name": "Contributors",
+            "homepage": "https://github.com/mimmi20/browscap-json-generator/graphs/contributors"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
+        "source": "https://github.com/mimmi20/browscap-json-generator"
+    },
+    "require": {
+        "php": ">= 5.4.0",
+        "browscap/browscap": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Browscap\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BrowscapTest\\": "tests/"
+        }
+    }
+}
