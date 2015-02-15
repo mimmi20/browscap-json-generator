@@ -58,4 +58,57 @@ class UserAgentsTest extends \PHPUnit_Framework_TestCase
 
         self::assertTrue(file_exists($jsonFile));
     }
+
+    public function testCreateTestFiles()
+    {
+        self::markTestSkipped('for test only');
+
+        $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
+
+        $iterator = new \RecursiveDirectoryIterator($sourceDirectory);
+
+        foreach (new \RecursiveIteratorIterator($iterator) as $file) {
+            /** @var $file \SplFileInfo */
+            if (!$file->isFile() || $file->getExtension() != 'php') {
+                continue;
+            }
+
+            $filename    = str_replace('.php', '.js', $file->getFilename());
+            $testnummer  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+            $filecontent = 'var assert = require(\'assert\'),
+  browscap = require(\'../browscap.js\'),
+  browser;
+
+suite(\'checking for issue ' . $testnummer . '\', function () {
+';
+
+            $tests = require_once $file->getPathname();
+
+            foreach ($tests as $key => $test) {
+                if (isset($data[$key])) {
+                    throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
+                }
+
+                if (isset($checks[$test[0]])) {
+                    throw new \RuntimeException(
+                        'UA "' . $test[0] . '" added more than once, now for key "' . $key . '", before for key "'
+                        . $checks[$test[0]] . '"'
+                    );
+                }
+
+                $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
+                $filecontent .= '    browser = browscap.getBrowser("' . $test[0] . '");' . "\n\n";
+
+                foreach ($test[1] as $property => $value) {
+                    $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], \'' . $value . '\');' . "\n";
+                }
+
+                $filecontent .= '  });' . "\n";
+            }
+
+            $filecontent .= '});' . "\n\n";
+
+            file_put_contents($filename, $filecontent);
+        }
+    }
 }
