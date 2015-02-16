@@ -31,18 +31,14 @@ use Monolog\Logger;
 class UserAgentsTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * This method is called before the first test of this test class is run.
-     *
-     * @since Method available since Release 3.4.0
+     * Test to make sure the preprocessed json file is created
      */
     public function testCreatingJsonFile()
     {
         // First, generate the INI files
-        $buildNumber = time();
-
         $resourceFolder = 'vendor/browscap/browscap/resources/';
 
-        $buildFolder = 'vendor/browscap/browscap/build/browscap-ua-test-' . $buildNumber;
+        $buildFolder = 'resources/';
         $jsonFile    = $buildFolder . '/browscap.preprocessed.json';
 
         if (!file_exists($buildFolder)) {
@@ -59,10 +55,12 @@ class UserAgentsTest extends \PHPUnit_Framework_TestCase
         self::assertTrue(file_exists($jsonFile));
     }
 
-    public function testCreateTestFiles()
+    /**
+     * @return array[]
+     */
+    public function userAgentDataProvider()
     {
-        self::markTestSkipped('for test only');
-
+        $data            = array();
         $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
 
         $iterator = new \RecursiveDirectoryIterator($sourceDirectory);
@@ -73,42 +71,56 @@ class UserAgentsTest extends \PHPUnit_Framework_TestCase
                 continue;
             }
 
-            $filename    = str_replace('.php', '.js', $file->getFilename());
-            $testnummer  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
-            $filecontent = 'var assert = require(\'assert\'),
-  browscap = require(\'../browscap.js\'),
-  browser;
+            $data[] = array($file);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider userAgentDataProvider
+     * @coversNothing
+     * @param \SplFileInfo $file
+     */
+    public function testCreateTestFiles(\SplFileInfo $file)
+    {
+        $filename    = str_replace('.php', '.js', $file->getFilename());
+        $testnummer  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+        $filecontent = 'var assert = require(\'assert\'),
+browscap = require(\'../browscap.js\'),
+browser;
 
 suite(\'checking for issue ' . $testnummer . '\', function () {
 ';
 
-            $tests = require_once $file->getPathname();
+        $tests = require_once $file->getPathname();
 
-            foreach ($tests as $key => $test) {
-                if (isset($data[$key])) {
-                    throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
-                }
-
-                if (isset($checks[$test[0]])) {
-                    throw new \RuntimeException(
-                        'UA "' . $test[0] . '" added more than once, now for key "' . $key . '", before for key "'
-                        . $checks[$test[0]] . '"'
-                    );
-                }
-
-                $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
-                $filecontent .= '    browser = browscap.getBrowser("' . $test[0] . '");' . "\n\n";
-
-                foreach ($test[1] as $property => $value) {
-                    $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], \'' . $value . '\');' . "\n";
-                }
-
-                $filecontent .= '  });' . "\n";
+        foreach ($tests as $key => $test) {
+            if (isset($data[$key])) {
+                throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
             }
 
-            $filecontent .= '});' . "\n\n";
+            if (isset($checks[$test[0]])) {
+                throw new \RuntimeException(
+                    'UA "' . $test[0] . '" added more than once, now for key "' . $key . '", before for key "'
+                    . $checks[$test[0]] . '"'
+                );
+            }
 
-            file_put_contents($filename, $filecontent);
+            $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
+            $filecontent .= '    browser = browscap.getBrowser("' . $test[0] . '");' . "\n\n";
+
+            foreach ($test[1] as $property => $value) {
+                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], \'' . $value . '\');' . "\n";
+            }
+
+            $filecontent .= '  });' . "\n";
         }
+
+        $filecontent .= '});' . "\n";
+
+        file_put_contents('resources/test/' . $filename, $filecontent);
+
+        self::assertTrue(file_exists('resources/test/' . $filename));
     }
 }
