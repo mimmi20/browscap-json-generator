@@ -1,6 +1,6 @@
 var assert = require('assert'),
-browscap = require('../browscap.js'),
-browser;
+    browscap = require('../browscap.js'),
+    browser;
 
 suite('checking for issue 279.', function () {
   test('issue-279-A', function () {

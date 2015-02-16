@@ -87,8 +87,8 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnummer  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
         $filecontent = 'var assert = require(\'assert\'),
-browscap = require(\'../browscap.js\'),
-browser;
+    browscap = require(\'../browscap.js\'),
+    browser;
 
 suite(\'checking for issue ' . $testnummer . '\', function () {
 ';
