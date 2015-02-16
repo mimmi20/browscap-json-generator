@@ -28,7 +28,7 @@ use Monolog\Logger;
  * @package    Test
  * @author     James Titcumb <james@asgrim.com>
  */
-class UserAgentsTest extends \PHPUnit_Framework_TestCase
+class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Test to make sure the preprocessed json file is created
@@ -108,7 +108,7 @@ suite(\'checking for issue ' . $testnummer . '\', function () {
             }
 
             $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
-            $filecontent .= '    browser = browscap.getBrowser("' . $test[0] . '");' . "\n\n";
+            $filecontent .= '    browser = browscap.getBrowser("' . str_replace('"', '\"', $test[0]) . '");' . "\n\n";
 
             foreach ($test[1] as $property => $value) {
                 $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], \'' . $value . '\');' . "\n";
