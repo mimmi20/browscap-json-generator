@@ -4,6 +4,7 @@ namespace Browscap\Generator;
 
 use Browscap\Data\DataCollection;
 use Browscap\Data\Expander;
+use Browscap\Data\PropertyHolder;
 use Browscap\Helper\CollectionCreator;
 
 /**
@@ -141,7 +142,8 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             }
         }
 
-        $allDivisions = array();
+        $allDivisions   = array();
+        $propertyHolder = new PropertyHolder();
 
         foreach ($allInputDivisions as $key => $properties) {
             $this->getLogger()->debug('checking division "' . $properties['Comment']);
@@ -187,35 +189,33 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                     continue;
                 }
 
+                if (!$propertyHolder->isOutputProperty($property)) {
+                    continue;
+                }
+
                 $value       = $propertiesToOutput[$property];
                 $valueOutput = $value;
-/*
-                if (!CollectionParser::isOutputProperty($property)) {
-                    continue;
-                }
 
-                if (CollectionParser::isExtraProperty($property)) {
-                    continue;
-                }
-
-
-
-                switch (CollectionParser::getPropertyType($property)) {
-                    case CollectionParser::TYPE_BOOLEAN:
+                switch ($propertyHolder->getPropertyType($property)) {
+                    case PropertyHolder::TYPE_BOOLEAN:
                         if (true === $value || $value === 'true') {
                             $valueOutput = true;
-                        } elseif (false === $value || $value === 'false') {
+                        } else {
                             $valueOutput = false;
                         }
                         break;
-                    case CollectionParser::TYPE_IN_ARRAY:
-                        $valueOutput = CollectionParser::checkValueInArray($property, $value);
+                    case PropertyHolder::TYPE_IN_ARRAY:
+                        try {
+                            $valueOutput = $propertyHolder->checkValueInArray($property, $value);
+                        } catch (\InvalidArgumentException $e) {
+                            $valueOutput = '';
+                        }
                         break;
                     default:
                         // nothing t do here
                         break;
                 }
-/**/
+
                 $allDivisions[$key][$property] = $valueOutput;
 
                 unset($value, $valueOutput);

@@ -17,9 +17,11 @@
 
 namespace BrowscapTest;
 
+use Browscap\Formatter\JsonFormatter;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
+use Browscap\Data\PropertyHolder;
 
 /**
  * Class UserAgentsTest
@@ -95,6 +97,9 @@ suite(\'checking for issue ' . $testnummer . '\', function () {
 
         $tests = require_once $file->getPathname();
 
+        $formatter = new JsonFormatter();
+        $propertyHolder = new PropertyHolder();
+
         foreach ($tests as $key => $test) {
             if (isset($data[$key])) {
                 throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
@@ -111,7 +116,33 @@ suite(\'checking for issue ' . $testnummer . '\', function () {
             $filecontent .= '    browser = browscap.getBrowser("' . str_replace('"', '\"', $test[0]) . '");' . "\n\n";
 
             foreach ($test[1] as $property => $value) {
-                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], \'' . $value . '\');' . "\n";
+                if (!$propertyHolder->isOutputProperty($property)) {
+                    continue;
+                }
+
+                $valueOutput = '\'' . $value . '\'';
+
+                switch ($propertyHolder->getPropertyType($property)) {
+                    case PropertyHolder::TYPE_BOOLEAN:
+                        if (true === $value || $value === 'true') {
+                            $valueOutput = 'true';
+                        } else {
+                            $valueOutput = 'false';
+                        }
+                        break;
+                    case PropertyHolder::TYPE_IN_ARRAY:
+                        try {
+                            $valueOutput = '\'' . $propertyHolder->checkValueInArray($property, $value) . '\'';
+                        } catch (\InvalidArgumentException $e) {
+                            $valueOutput = '""';
+                        }
+                        break;
+                    default:
+                        // nothing t do here
+                        break;
+                }
+
+                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ');' . "\n";
             }
 
             $filecontent .= '  });' . "\n";
