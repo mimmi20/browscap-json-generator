@@ -17,7 +17,6 @@
 
 namespace BrowscapTest;
 
-use Browscap\Formatter\JsonFormatter;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
@@ -87,17 +86,16 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
     public function testCreateTestFiles(\SplFileInfo $file)
     {
         $filename    = str_replace('.php', '.js', $file->getFilename());
-        $testnummer  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+        $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
         $filecontent = 'var assert = require(\'assert\'),
     browscap = require(\'../browscap.js\'),
     browser;
 
-suite(\'checking for issue ' . $testnummer . '\', function () {
+suite(\'checking for issue ' . $testnumber . '\', function () {
 ';
 
         $tests = require_once $file->getPathname();
 
-        $formatter = new JsonFormatter();
         $propertyHolder = new PropertyHolder();
 
         foreach ($tests as $key => $test) {
@@ -113,7 +111,11 @@ suite(\'checking for issue ' . $testnummer . '\', function () {
             }
 
             $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
-            $filecontent .= '    browser = browscap.getBrowser("' . str_replace('"', '\"', $test[0]) . '");' . "\n\n";
+
+            $rule = $test[0];
+            $rule = str_replace(array('\\', '"'), array('\\\\', '\"'), $rule);
+
+            $filecontent .= '    browser = browscap.getBrowser("' . $rule . '");' . "\n\n";
 
             foreach ($test[1] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property)) {

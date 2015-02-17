@@ -175,7 +175,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                         break;
                 }
 
-                if ($parentProperty != $value) {
+                if ($parentProperty !== $value) {
                     continue;
                 }
 
