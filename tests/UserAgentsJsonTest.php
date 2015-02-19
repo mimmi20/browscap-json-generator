@@ -36,6 +36,8 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreatingJsonFile()
     {
+        self::markTestSkipped('not read yet');
+
         // First, generate the INI files
         $resourceFolder = 'vendor/browscap/browscap/resources/';
 
@@ -85,6 +87,8 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateTestFiles(\SplFileInfo $file)
     {
+        self::markTestSkipped('not read yet');
+        
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
         $filecontent = 'var assert = require(\'assert\'),
