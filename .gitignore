@@ -4,3 +4,5 @@ vendor/
 .settings
 .project
 composer.phar
+build/
+!build/test/

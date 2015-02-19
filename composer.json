@@ -22,7 +22,9 @@
     },
     "require": {
         "php": ">= 5.4.0",
-        "browscap/browscap": "dev-master"
+        "browscap/browscap": "dev-master",
+        "symfony/console": "~2",
+        "composer/composer": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "*"
@@ -37,5 +39,9 @@
             "BrowscapTest\\": "tests/"
         }
     },
-    "bin": ["bin/browscap-with-json"]
+    "bin": ["bin/browscap-with-json"],
+    "scripts": {
+        "post-install-cmd": ["Browscap\\Tool\\ComposerHook::postInstall"],
+        "post-update-cmd": ["Browscap\\Tool\\ComposerHook::postUpdate"]
+    }
 }
