@@ -6,3 +6,4 @@ vendor/
 composer.phar
 build/
 !build/test/
+!build/browscap.preprocessed.json

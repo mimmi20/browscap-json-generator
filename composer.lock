@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/browscap/browscap.git",
-                "reference": "20905e7331504c52af3cc525a6e8209573539f64"
+                "reference": "21fe409908dd0b5d1e0fa6b2b981683ce41b364e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/browscap/browscap/zipball/20905e7331504c52af3cc525a6e8209573539f64",
-                "reference": "20905e7331504c52af3cc525a6e8209573539f64",
+                "url": "https://api.github.com/repos/browscap/browscap/zipball/21fe409908dd0b5d1e0fa6b2b981683ce41b364e",
+                "reference": "21fe409908dd0b5d1e0fa6b2b981683ce41b364e",
                 "shasum": ""
             },
             "require": {
@@ -71,7 +71,7 @@
             "keywords": [
                 "Browscap"
             ],
-            "time": "2015-02-12 11:00:28"
+            "time": "2015-02-27 08:20:01"
         },
         {
             "name": "composer/composer",
