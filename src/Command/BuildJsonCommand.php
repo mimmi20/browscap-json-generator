@@ -113,7 +113,12 @@ class BuildJsonCommand extends Command
 
         $buildJsonGenerator
             ->setLogger($logger)
-            ->run($input->getArgument('version'), $buildFolder . '/browscap.preprocessed.json')
+            ->run(
+                $input->getArgument('version'),
+                $buildFolder . '/browscap.preprocessed.patterns.json',
+                $buildFolder . '/browscap.preprocessed.browsers.json',
+                $buildFolder . '/browscap.preprocessed.useragents.json'
+            )
         ;
 
         $logger->info('Build done.');

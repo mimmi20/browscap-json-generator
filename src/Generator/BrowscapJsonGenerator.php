@@ -41,11 +41,13 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * Entry point for generating builds for a specified version
      *
      * @param string      $version
-     * @param string|null $iniFile
+     * @param string|null $jsonFilePatterns
+     * @param string|null $jsonFileBrowsers
+     * @param string|null $jsonFileUas
      *
      * @return string|void
      */
-    public function run($version, $iniFile = null)
+    public function run($version, $jsonFilePatterns = null, $jsonFileBrowsers = null, $jsonFileUas = null)
     {
         $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
         $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
@@ -264,9 +266,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         unset($fullLength, $reducedLength);
 
         $user_agents_keys = array_flip($tmp_user_agents);
-        //$properties_keys  = array_flip($allProperties);
-
-        $tmp_patterns = array();
+        $tmp_patterns     = array();
 
         $this->getLogger()->debug('process all useragents');
 
@@ -340,7 +340,29 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         // reducing memory usage by unsetting $tmp_user_agents
         unset($tmp_patterns);
 
-        file_put_contents($iniFile, json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT));
+        $patternOutput = array(
+            'comments'             => $comments,
+            'GJK_Browscap_Version' => array(
+                'version'  => $version,
+                'released' => $collection->getGenerationDate()->format('r'),
+                'format'   => 'json',
+                'type'     => 'FULL',
+            ),
+            'patterns'             => $output['patterns'],
+        );
+
+        file_put_contents(
+            $jsonFilePatterns,
+            json_encode($patternOutput, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+        file_put_contents(
+            $jsonFileBrowsers,
+            json_encode(array('browsers' => $output['browsers']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+        file_put_contents(
+            $jsonFileUas,
+            json_encode(array('userAgents' => $output['userAgents']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
     }
 
     /**
