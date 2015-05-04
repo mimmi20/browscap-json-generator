@@ -355,10 +355,12 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             $jsonFilePatterns,
             json_encode($patternOutput, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
         );
+
         file_put_contents(
             $jsonFileBrowsers,
             json_encode(array('browsers' => $output['browsers']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
         );
+        
         file_put_contents(
             $jsonFileUas,
             json_encode(array('userAgents' => $output['userAgents']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
