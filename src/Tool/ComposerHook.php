@@ -186,11 +186,15 @@ class ComposerHook
             ->run($buildNumber)
         ;
 
-        $jsonFile           = $buildFolder . '/browscap.preprocessed.json';
         $buildJsonGenerator = new BrowscapJsonGenerator($resourceFolder, $buildFolder);
         $buildJsonGenerator
             ->setLogger($logger)
-            ->run($buildNumber, $jsonFile)
+            ->run(
+                $buildNumber,
+                $buildFolder . '/browscap.preprocessed.patterns.json',
+                $buildFolder . '/browscap.preprocessed.browsers.json',
+                $buildFolder . '/browscap.preprocessed.useragents.json'
+            )
         ;
 
         // Generate the metadata for the site
