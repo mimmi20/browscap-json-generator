@@ -41,11 +41,11 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * Entry point for generating builds for a specified version
      *
      * @param string      $version
-     * @param string|null $iniFile
+     * @param string|null $jsonFile
      *
      * @return string|void
      */
-    public function run($version, $iniFile = null)
+    public function run($version, $jsonFile = null)
     {
         $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
         $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
@@ -340,7 +340,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         // reducing memory usage by unsetting $tmp_user_agents
         unset($tmp_patterns);
 
-        file_put_contents($iniFile, json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT));
+        file_put_contents($jsonFile, json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT));
     }
 
     /**
