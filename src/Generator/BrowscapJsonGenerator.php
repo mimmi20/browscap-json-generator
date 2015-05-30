@@ -40,19 +40,21 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
     /**
      * Entry point for generating builds for a specified version
      *
-     * @param string      $version
-     * @param string|null $jsonFile
+     * @param string      $inputVersion
+     * @param string|null $jsonFilePatterns
+     * @param string|null $jsonFileBrowsers
+     * @param string|null $jsonFileUas
      *
      * @return string|void
      */
-    public function run($version, $jsonFile = null)
+    public function run($inputVersion, $jsonFilePatterns = null, $jsonFileBrowsers = null, $jsonFileUas = null)
     {
         $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
         $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
 
         $this->getLogger()->info('started creating a data collection');
 
-        $dataCollection = new DataCollection($version);
+        $dataCollection = new DataCollection($inputVersion);
         $dataCollection->setLogger($this->getLogger());
 
         $collectionCreator = $this->getCollectionCreator();
@@ -223,16 +225,9 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         }
 
         $output = array(
-            'comments'             => $comments,
-            'GJK_Browscap_Version' => array(
-                'version'  => $version,
-                'released' => $collection->getGenerationDate()->format('r'),
-                'format'   => 'json',
-                'type'     => 'FULL',
-            ),
-            'patterns'             => array(),
-            'browsers'             => array(),
-            'userAgents'           => array(),
+            'patterns'   => array(),
+            'browsers'   => array(),
+            'userAgents' => array(),
         );
 
         array_unshift(
@@ -243,14 +238,14 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         );
         ksort($allProperties);
 
-        $tmp_user_agents = array_keys($allDivisions);
+        $tmpUserAgents = array_keys($allDivisions);
 
         $this->getLogger()->debug('sort useragent rules by length');
 
         $fullLength    = array();
         $reducedLength = array();
 
-        foreach ($tmp_user_agents as $k => $a) {
+        foreach ($tmpUserAgents as $k => $a) {
             $fullLength[$k]    = strlen($a);
             $reducedLength[$k] = strlen(str_replace(array('*', '?'), '', $a));
         }
@@ -258,19 +253,19 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         array_multisort(
             $fullLength, SORT_DESC, SORT_NUMERIC,
             $reducedLength, SORT_DESC, SORT_NUMERIC,
-            $tmp_user_agents
+            $tmpUserAgents
         );
 
         unset($fullLength, $reducedLength);
 
-        $user_agents_keys = array_flip($tmp_user_agents);
-        //$properties_keys  = array_flip($allProperties);
-
-        $tmp_patterns = array();
+        $userAgentsKeys = array_flip($tmpUserAgents);
+        $tmpPatterns    = array();
 
         $this->getLogger()->debug('process all useragents');
 
-        foreach ($tmp_user_agents as $i => $user_agent) {
+        $propertyHolder = new PropertyHolder();
+
+        foreach ($tmpUserAgents as $i => $user_agent) {
             if (empty($allDivisions[$user_agent]['Comment'])
                 || false !== strpos($user_agent, '*')
                 || false !== strpos($user_agent, '?')
@@ -280,34 +275,53 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                 $matches_count = preg_match_all(self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER, $pattern, $matches);
 
                 if (!$matches_count) {
-                    $tmp_patterns[$pattern] = $i;
+                    $tmpPatterns[$pattern] = $i;
                 } else {
                     $compressed_pattern = preg_replace(self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER, '(\d)', $pattern);
 
-                    if (!isset($tmp_patterns[$compressed_pattern])) {
-                        $tmp_patterns[$compressed_pattern] = array('first' => $pattern);
+                    if (!isset($tmpPatterns[$compressed_pattern])) {
+                        $tmpPatterns[$compressed_pattern] = array('first' => $pattern);
                     }
 
-                    $tmp_patterns[$compressed_pattern][$i] = $matches[0];
+                    $tmpPatterns[$compressed_pattern][$i] = $matches[0];
                 }
             }
 
             if (!empty($allDivisions[$user_agent]['Parent'])) {
                 $parent = $allDivisions[$user_agent]['Parent'];
 
-                $parent_key = $user_agents_keys[$parent];
+                $parentKey = $userAgentsKeys[$parent];
 
-                $allDivisions[$user_agent]['Parent']       = $parent_key;
-                $output['userAgents'][$parent_key] = $tmp_user_agents[$parent_key];
+                $allDivisions[$user_agent]['Parent'] = $parentKey;
+                $output['userAgents'][$parentKey]    = $tmpUserAgents[$parentKey];
             };
 
             $browser = array();
             foreach ($allDivisions[$user_agent] as $property => $value) {
-                /*
-                if (!isset($properties_keys[$property]) || !CollectionParser::isOutputProperty($property)) {
+                if (!$propertyHolder->isOutputProperty($property)) {
                     continue;
                 }
-                /**/
+
+                if (isset($allDivisions[$user_agent]['Parent']) && 'Parent' !== $property) {
+                    if ('DefaultProperties' === $allDivisions[$user_agent]['Parent']
+                        || !isset($allDivisions[$allDivisions[$user_agent]['Parent']])
+                    ) {
+                        if (isset($defaultproperties[$property])
+                            && $defaultproperties[$property] === $allDivisions[$user_agent][$property]
+                        ) {
+                            continue;
+                        }
+                    } else {
+                        $parentProperties = $allDivisions[$allDivisions[$user_agent]['Parent']];
+
+                        if (isset($parentProperties[$property])
+                            && $parentProperties[$property] === $allDivisions[$user_agent][$property]
+                        ) {
+                            continue;
+                        }
+                    }
+                }
+
                 $browser[$property] = $value;
             }
 
@@ -315,14 +329,14 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         }
 
         // reducing memory usage by unsetting $tmp_user_agents
-        unset($tmp_user_agents);
+        unset($tmpUserAgents);
 
         ksort($output['userAgents']);
         ksort($output['browsers']);
 
         $this->getLogger()->debug('process all patterns');
 
-        foreach ($tmp_patterns as $pattern => $pattern_data) {
+        foreach ($tmpPatterns as $pattern => $pattern_data) {
             if (is_int($pattern_data) || is_string($pattern_data)) {
                 $output['patterns'][$pattern] = $pattern_data;
             } elseif (2 == count($pattern_data)) {
@@ -338,9 +352,33 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         }
 
         // reducing memory usage by unsetting $tmp_user_agents
-        unset($tmp_patterns);
+        unset($tmpPatterns);
 
-        file_put_contents($jsonFile, json_encode($output, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT));
+        $patternOutput = array(
+            'comments'             => $comments,
+            'GJK_Browscap_Version' => array(
+                'version'  => $inputVersion,
+                'released' => $collection->getGenerationDate()->format('r'),
+                'format'   => 'json',
+                'type'     => 'FULL',
+            ),
+            'patterns'             => $output['patterns'],
+        );
+
+        file_put_contents(
+            $jsonFilePatterns,
+            json_encode($patternOutput, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+
+        file_put_contents(
+            $jsonFileBrowsers,
+            json_encode(array('browsers' => $output['browsers']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+
+        file_put_contents(
+            $jsonFileUas,
+            json_encode(array('userAgents' => $output['userAgents']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
     }
 
     /**
