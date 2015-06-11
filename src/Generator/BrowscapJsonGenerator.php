@@ -94,7 +94,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $ua            = $division->getUserAgents();
         $allProperties = array('Parent') + array_keys($ua[0]['properties']);
 
-        $this->getLogger()->debug('rendering all divisions');
+        $this->getLogger()->info('checking and expanding all divisions');
 
         $allInputDivisions = array('DefaultProperties' => $ua[0]['properties']);
 
@@ -105,7 +105,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             // versions
             $sections = $expander->expand($division, $division->getName());
 
-            $this->getLogger()->info('checking division ' . $division->getName());
+            $this->getLogger()->debug('checking and expanding division ' . $division->getName());
 
             foreach (array_keys($sections) as $sectionName) {
                 $section = $sections[$sectionName];
@@ -146,6 +146,8 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
         $allDivisions   = array();
         $propertyHolder = new PropertyHolder();
+
+        $this->getLogger()->info('removing unchanged properties');
 
         foreach ($allInputDivisions as $key => $properties) {
             $this->getLogger()->debug('checking division "' . $properties['Comment']);
@@ -240,19 +242,22 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
         $tmpUserAgents = array_keys($allDivisions);
 
-        $this->getLogger()->debug('sort useragent rules by length');
+        $this->getLogger()->info('sort useragent rules by length');
 
         $fullLength    = array();
         $reducedLength = array();
+        $keys          = array();
 
         foreach ($tmpUserAgents as $k => $a) {
             $fullLength[$k]    = strlen($a);
             $reducedLength[$k] = strlen(str_replace(array('*', '?'), '', $a));
+            $keys[$k]          = strlen($k);
         }
 
         array_multisort(
             $fullLength, SORT_DESC, SORT_NUMERIC,
             $reducedLength, SORT_DESC, SORT_NUMERIC,
+            $keys, SORT_ASC, SORT_NUMERIC,
             $tmpUserAgents
         );
 
