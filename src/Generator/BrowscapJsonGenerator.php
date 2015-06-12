@@ -26,6 +26,21 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
     const COMPRESSION_PATTERN_DELIMITER = '|';
 
     /**
+     * @var \Browscap\Data\DataCollection
+     */
+    private $collection = null;
+
+    /**
+     * @var array
+     */
+    private $comments = array();
+
+    /**
+     * @var \Browscap\Data\Expander
+     */
+    private $expander = null;
+
+    /**
      * @return \Browscap\Helper\CollectionCreator
      */
     public function getCollectionCreator()
@@ -38,23 +53,50 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
     }
 
     /**
+     * runs before the build
+     *
+     * @return \Browscap\Generator\AbstractBuildGenerator
+     */
+    protected function preBuild()
+    {
+        $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
+        $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
+
+        return $this;
+    }
+
+    /**
      * Entry point for generating builds for a specified version
      *
-     * @param string      $inputVersion
+     * @param string      $version
      * @param string|null $jsonFilePatterns
      * @param string|null $jsonFileBrowsers
      * @param string|null $jsonFileUas
      *
      * @return string|void
      */
-    public function run($inputVersion, $jsonFilePatterns = null, $jsonFileBrowsers = null, $jsonFileUas = null)
-    {
-        $this->getLogger()->info('Resource folder: ' . $this->resourceFolder . '');
-        $this->getLogger()->info('Build folder: ' . $this->buildFolder . '');
 
+    public function run($version, $jsonFilePatterns = null, $jsonFileBrowsers = null, $jsonFileUas = null)
+    {
+        return $this
+            ->preBuild()
+            ->build($version)
+            ->postBuild($version, $jsonFilePatterns, $jsonFileBrowsers, $jsonFileUas)
+        ;
+    }
+
+    /**
+     * runs the build
+     *
+     * @param string $version
+     *
+     * @return \Browscap\Generator\AbstractBuildGenerator
+     */
+    protected function build($version)
+    {
         $this->getLogger()->info('started creating a data collection');
 
-        $dataCollection = new DataCollection($inputVersion);
+        $dataCollection = new DataCollection($version);
         $dataCollection->setLogger($this->getLogger());
 
         $collectionCreator = $this->getCollectionCreator();
@@ -64,21 +106,23 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             ->setDataCollection($dataCollection)
         ;
 
-        $collection = $collectionCreator->createDataCollection($this->resourceFolder);
+        $this->collection = $collectionCreator->createDataCollection($this->resourceFolder);
+
+        $this->setCollectionCreator($collectionCreator);
 
         $this->getLogger()->info('started initialisation of expander');
 
-        $expander = new Expander();
-        $expander
-            ->setDataCollection($collection)
+        $this->expander = new Expander();
+        $this->expander
+            ->setDataCollection($this->collection)
             ->setLogger($this->getLogger())
         ;
 
         $this->getLogger()->info('finished initialisation of expander');
 
-        $comments = array(
+        $this->comments = array(
             'Provided courtesy of http://browscap.org/',
-            'Created on ' . $collection->getGenerationDate()->format('l, F j, Y \a\t h:i A T'),
+            'Created on ' . $this->collection->getGenerationDate()->format('l, F j, Y \a\t h:i A T'),
             'Keep up with the latest goings-on with the project:',
             'Follow us on Twitter <https://twitter.com/browscap>, or...',
             'Like us on Facebook <https://facebook.com/browscap>, or...',
@@ -88,42 +132,63 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
         $this->getLogger()->info('finished creating a data collection');
 
+        return $this;
+    }
+
+    /**
+     * runs after the build
+     *
+     * @param string      $inputVersion
+     * @param string|null $jsonFilePatterns
+     * @param string|null $jsonFileBrowsers
+     * @param string|null $jsonFileUas
+     *
+     * @return \Browscap\Generator\BuildGenerator
+     */
+    protected function postBuild(
+        $inputVersion = null,
+        $jsonFilePatterns = null,
+        $jsonFileBrowsers = null,
+        $jsonFileUas = null
+    )
+    {
         $this->getLogger()->debug('build output for processed json file');
 
-        $division      = $collection->getDefaultProperties();
+        $division      = $this->collection->getDefaultProperties();
         $ua            = $division->getUserAgents();
-        $allProperties = array('Parent') + array_keys($ua[0]['properties']);
+        $allProperties = array_keys($ua[0]['properties']);
+        array_unshift($allProperties, 'Parent');
 
         $this->getLogger()->info('checking and expanding all divisions');
 
         $allInputDivisions = array('DefaultProperties' => $ua[0]['properties']);
 
-        foreach ($collection->getDivisions() as $division) {
+        foreach ($this->collection->getDivisions() as $division) {
             /** @var \Browscap\Data\Division $division */
 
             // run checks on division before expanding versions because the checked properties do not change between
             // versions
-            $sections = $expander->expand($division, $division->getName());
+            $sections = $this->expander->expand($division, $division->getName());
 
             $this->getLogger()->debug('checking and expanding division ' . $division->getName());
 
             foreach (array_keys($sections) as $sectionName) {
                 $section = $sections[$sectionName];
 
-                $collection->checkProperty($sectionName, $section);
+                $this->collection->checkProperty($sectionName, $section);
             }
 
             $versions = $division->getVersions();
 
             foreach ($versions as $version) {
-                list($majorVer, $minorVer) = $expander->getVersionParts($version);
+                list($majorVer, $minorVer) = $this->expander->getVersionParts($version);
 
-                $divisionName = $expander->parseProperty($division->getName(), $majorVer, $minorVer);
+                $divisionName = $this->expander->parseProperty($division->getName(), $majorVer, $minorVer);
 
                 $this->getLogger()->info('handle division ' . $divisionName);
 
                 $encodedSections = json_encode($sections);
-                $encodedSections = $expander->parseProperty($encodedSections, $majorVer, $minorVer);
+                $encodedSections = $this->expander->parseProperty($encodedSections, $majorVer, $minorVer);
 
                 $sectionsWithVersion = json_decode($encodedSections, true);
 
@@ -143,6 +208,11 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                 unset($divisionName, $majorVer, $minorVer);
             }
         }
+
+        $division = $this->collection->getDefaultBrowser();
+        $ua       = $division->getUserAgents();
+
+        $allInputDivisions += array($ua[0]['userAgent'] => $ua[0]['properties']);
 
         $allDivisions   = array();
         $propertyHolder = new PropertyHolder();
@@ -242,6 +312,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
 
         $tmpUserAgents = array_keys($allDivisions);
 
+        /*
         $this->getLogger()->info('sort useragent rules by length');
 
         $fullLength    = array();
@@ -261,12 +332,13 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             $tmpUserAgents
         );
 
-        unset($fullLength, $reducedLength);
+        unset($fullLength, $reducedLength, $keys);
+        /**/
 
         $userAgentsKeys = array_flip($tmpUserAgents);
         $tmpPatterns    = array();
 
-        $this->getLogger()->debug('process all useragents');
+        $this->getLogger()->info('process all useragents');
 
         $propertyHolder = new PropertyHolder();
 
@@ -339,7 +411,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         ksort($output['userAgents']);
         ksort($output['browsers']);
 
-        $this->getLogger()->debug('process all patterns');
+        $this->getLogger()->info('process all patterns');
 
         foreach ($tmpPatterns as $pattern => $pattern_data) {
             if (is_int($pattern_data) || is_string($pattern_data)) {
@@ -359,11 +431,13 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         // reducing memory usage by unsetting $tmp_user_agents
         unset($tmpPatterns);
 
+        $this->getLogger()->info('create preprocessed json files');
+
         $patternOutput = array(
-            'comments'             => $comments,
+            'comments'             => $this->comments,
             'GJK_Browscap_Version' => array(
                 'version'  => $inputVersion,
-                'released' => $collection->getGenerationDate()->format('r'),
+                'released' => $this->collection->getGenerationDate()->format('r'),
                 'format'   => 'json',
                 'type'     => 'FULL',
             ),
@@ -384,6 +458,10 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             $jsonFileUas,
             json_encode(array('userAgents' => $output['userAgents']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
         );
+
+        $this->getLogger()->info('create testfiles for browscap.js');
+
+        $this->createTestfiles();
     }
 
     /**
@@ -540,5 +618,109 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         }
 
         return true;
+    }
+
+    /**
+     * creates the testfiles for browscap.js
+     */
+    private function createTestfiles()
+    {
+        if (!file_exists($this->buildFolder . '/test/')) {
+            mkdir($this->buildFolder . '/test/', 0775, true);
+        }
+
+        $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
+        $iterator        = new \RecursiveDirectoryIterator($sourceDirectory);
+
+        foreach (new \RecursiveIteratorIterator($iterator) as $file) {
+            /** @var $file \SplFileInfo */
+            if (!$file->isFile() || $file->getExtension() != 'php') {
+                continue;
+            }
+
+            try {
+                $this->createTestFile($file, $this->buildFolder);
+            } catch (\RuntimeException $e) {
+                $this->getLogger()->error($e);
+            }
+        }
+    }
+
+    /**
+     * @param \SplFileInfo $file
+     * @param string       $buildFolder
+     *
+     * @throws \RuntimeException
+     */
+    private function createTestFile(\SplFileInfo $file, $buildFolder)
+    {
+        $filename    = str_replace('.php', '.js', $file->getFilename());
+        $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+        $filecontent = 'var assert = require(\'assert\'),
+    browscap = require(\'../browscap.js\'),
+    browser;
+
+suite(\'checking for issue ' . $testnumber . '\', function () {
+';
+
+        $tests = require_once $file->getPathname();
+
+        $propertyHolder = new PropertyHolder();
+
+        foreach ($tests as $key => $test) {
+            if (isset($data[$key])) {
+                throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
+            }
+
+            if (isset($checks[$test[0]])) {
+                throw new \RuntimeException(
+                    'UA "' . $test[0] . '" added more than once, now for key "' . $key . '", before for key "'
+                    . $checks[$test[0]] . '"'
+                );
+            }
+
+            $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
+
+            $rule = $test[0];
+            $rule = str_replace(array('\\', '"'), array('\\\\', '\"'), $rule);
+
+            $filecontent .= '    browser = browscap.getBrowser("' . $rule . '");' . "\n\n";
+
+            foreach ($test[1] as $property => $value) {
+                if (!$propertyHolder->isOutputProperty($property)) {
+                    continue;
+                }
+
+                $valueOutput = '\'' . $value . '\'';
+
+                switch ($propertyHolder->getPropertyType($property)) {
+                    case PropertyHolder::TYPE_BOOLEAN:
+                        if (true === $value || $value === 'true') {
+                            $valueOutput = 'true';
+                        } else {
+                            $valueOutput = 'false';
+                        }
+                        break;
+                    case PropertyHolder::TYPE_IN_ARRAY:
+                        try {
+                            $valueOutput = '\'' . $propertyHolder->checkValueInArray($property, $value) . '\'';
+                        } catch (\InvalidArgumentException $e) {
+                            $valueOutput = '""';
+                        }
+                        break;
+                    default:
+                        // nothing t do here
+                        break;
+                }
+
+                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ');' . "\n";
+            }
+
+            $filecontent .= '  });' . "\n";
+        }
+
+        $filecontent .= '});' . "\n";
+
+        file_put_contents($buildFolder . '/test/' . $filename, $filecontent);
     }
 }

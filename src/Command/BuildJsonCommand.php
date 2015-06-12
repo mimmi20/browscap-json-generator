@@ -40,7 +40,7 @@ class BuildJsonCommand extends Command
     /**
      * @var string
      */
-    const DEFAULT_BUILD_FOLDER = 'vendor/browscap/browscap/build';
+    const DEFAULT_BUILD_FOLDER = 'build';
 
     /**
      * @var string
