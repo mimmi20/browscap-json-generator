@@ -4,6 +4,5 @@ vendor/
 .settings
 .project
 composer.phar
-build/
-!build/test/
-!build/browscap.preprocessed.json
+build/*
+!build/.gitkeep
