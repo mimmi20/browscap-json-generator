@@ -305,14 +305,12 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         array_unshift(
             $allProperties,
             'browser_name',
-            'browser_name_regex',
-            'browser_name_pattern'
+            'browser_name_regex'
         );
         ksort($allProperties);
 
         $tmpUserAgents = array_keys($allDivisions);
 
-        /*
         $this->getLogger()->info('sort useragent rules by length');
 
         $fullLength    = array();
@@ -333,7 +331,6 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         );
 
         unset($fullLength, $reducedLength, $keys);
-        /**/
 
         $userAgentsKeys = array_flip($tmpUserAgents);
         $tmpPatterns    = array();
@@ -679,12 +676,11 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                 );
             }
 
-            $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
-
             $rule = $test[0];
             $rule = str_replace(array('\\', '"'), array('\\\\', '\"'), $rule);
 
-            $filecontent .= '    browser = browscap.getBrowser("' . $rule . '");' . "\n\n";
+            $filecontent .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
+            $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
             foreach ($test[1] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property)) {
@@ -713,7 +709,8 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                         break;
                 }
 
-                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ');' . "\n";
+                $message      = "'Expected actual \"$property\" to be " . addcslashes($valueOutput, "'") . " (was \\'' + browser['$property'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
+                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }
 
             $filecontent .= '  });' . "\n";

@@ -88,7 +88,12 @@ class BuildJsonCommand extends Command
 
         $logger->info('Build started.');
 
-        $buildFolder = $input->getOption('output');
+        $version     = $input->getArgument('version');
+        $buildFolder = $input->getOption('output') . '/build-' . $version . '/';
+
+        if (!file_exists($buildFolder)) {
+            mkdir($buildFolder, 0775, true);
+        }
 
         $buildGenerator = new BuildGenerator(
             $input->getOption('resources'),
@@ -104,7 +109,11 @@ class BuildJsonCommand extends Command
             ->setWriterCollection($writerCollection)
         ;
 
-        $buildGenerator->run($input->getArgument('version'));
+        $buildGenerator->run($version);
+
+        if (!file_exists($buildFolder . 'sources/')) {
+            mkdir($buildFolder . 'sources/', 0775, true);
+        }
 
         $buildJsonGenerator = new BrowscapJsonGenerator(
             $input->getOption('resources'),
@@ -115,9 +124,9 @@ class BuildJsonCommand extends Command
             ->setLogger($logger)
             ->run(
                 $input->getArgument('version'),
-                $buildFolder . '/browscap.preprocessed.patterns.json',
-                $buildFolder . '/browscap.preprocessed.browsers.json',
-                $buildFolder . '/browscap.preprocessed.useragents.json'
+                $buildFolder . '/sources/browscap.preprocessed.patterns.json',
+                $buildFolder . '/sources/browscap.preprocessed.browsers.json',
+                $buildFolder . '/sources/browscap.preprocessed.useragents.json'
             )
         ;
 

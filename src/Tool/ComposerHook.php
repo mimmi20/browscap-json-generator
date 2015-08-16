@@ -5,14 +5,11 @@ namespace Browscap\Tool;
 use Composer\Script\Event;
 use Composer\Package\PackageInterface;
 use Composer\IO\IOInterface;
-use Browscap\Generator\CollectionParser;
 use Browscap\Helper\CollectionCreator;
-use Browscap\Helper\Generator;
 use Browscap\Writer\Factory\FullCollectionFactory;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Browscap\Generator\BuildGenerator;
 use Browscap\Helper\LoggerHelper;
-use Browscap\Data\PropertyHolder;
 
 class ComposerHook
 {
@@ -119,22 +116,6 @@ class ComposerHook
             return $metadata['version'];
         } else {
             return null;
-        }
-    }
-
-    private static function moveSymlink($buildNumber)
-    {
-        $buildLink = 'build/build';
-
-        if (file_exists($buildLink) && !is_link($buildLink)) {
-            throw new \RuntimeException("Build folder '{$buildLink}' was not a symbolic link");
-        } else if (file_exists($buildLink) && is_link($buildLink)) {
-            unlink($buildLink);
-        }
-
-        $target = realpath($buildLink . '-' . $buildNumber);
-        if (!symlink($target, $buildLink)) {
-            throw new \RuntimeException("Unable to create symbolic link for target '{$target}'");
         }
     }
 
