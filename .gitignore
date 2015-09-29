@@ -4,5 +4,4 @@ vendor/
 .settings
 .project
 composer.phar
-build/*
-!build/.gitkeep
+build/build*/

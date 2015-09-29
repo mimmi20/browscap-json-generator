@@ -1,47 +1,49 @@
 {
-    "name": "mimmi20/browscap-json-generator",
-    "type": "application",
-    "description": "Browser Capabilities Tools",
-    "keywords": ["browscap"],
-    "homepage": "https://github.com/mimmi20/browscap-json-generator",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Thomas Müller",
-            "homepage": "https://github.com/mimmi20",
-            "role": "Developer"
-        },
-        {
-            "name": "Contributors",
-            "homepage": "https://github.com/mimmi20/browscap-json-generator/graphs/contributors"
-        }
-    ],
-    "support": {
-        "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
-        "source": "https://github.com/mimmi20/browscap-json-generator"
+  "name": "mimmi20/browscap-json-generator",
+  "type": "application",
+  "description": "Browser Capabilities Tools",
+  "keywords": ["browscap"],
+  "homepage": "https://github.com/mimmi20/browscap-json-generator",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thomas Müller",
+      "homepage": "https://github.com/mimmi20",
+      "role": "Developer"
     },
-    "require": {
-        "php": ">= 5.5.0",
-        "browscap/browscap": "dev-master",
-        "symfony/console": "~2",
-        "composer/composer": "dev-master"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "*"
-    },
-    "autoload": {
-        "psr-4": {
-            "Browscap\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "BrowscapTest\\": "tests/"
-        }
-    },
-    "bin": ["bin/browscap-with-json"],
-    "scripts": {
-        "post-install-cmd": ["Browscap\\Tool\\ComposerHook::postInstall"],
-        "post-update-cmd": ["Browscap\\Tool\\ComposerHook::postUpdate"]
+    {
+      "name": "Contributors",
+      "homepage": "https://github.com/mimmi20/browscap-json-generator/graphs/contributors"
     }
+  ],
+  "support": {
+    "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
+    "source": "https://github.com/mimmi20/browscap-json-generator"
+  },
+  "require": {
+    "php": ">= 5.5.0",
+    "browscap/browscap": "dev-master",
+    "symfony/console": "~2",
+    "composer/composer": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "squizlabs/php_codesniffer": "2.*",
+    "fabpot/php-cs-fixer": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Browscap\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BrowscapTest\\": "tests/"
+    }
+  },
+  "bin": ["bin/browscap-with-json"],
+  "scripts": {
+    "post-install-cmd": ["Browscap\\Tool\\ComposerHook::postInstall"],
+    "post-update-cmd": ["Browscap\\Tool\\ComposerHook::postUpdate"]
+  }
 }
