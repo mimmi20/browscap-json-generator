@@ -191,8 +191,8 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $collectionParser
             ->setLogger($this->logger)
             ->setDataCollection(
-            $this->getCollectionData([$fixturesDir . 'ua/default-properties.json', $jsonFile])
-        );
+                $this->getCollectionData([$fixturesDir . 'ua/default-properties.json', $jsonFile])
+            );
         $collectionData = $collectionParser->parse();
 
         $comments = array(

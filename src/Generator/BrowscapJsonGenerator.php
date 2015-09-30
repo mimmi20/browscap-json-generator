@@ -168,8 +168,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $jsonFileUas = null,
         $jsonFileVersion = null,
         $jsonFileProperties = null
-    )
-    {
+    ) {
         $this->getLogger()->info('create preprocessed json files (version)');
 
         $versionOutput = array(
