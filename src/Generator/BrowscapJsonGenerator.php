@@ -72,17 +72,31 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * @param string|null $jsonFilePatterns
      * @param string|null $jsonFileBrowsers
      * @param string|null $jsonFileUas
+     * @param string|null $jsonFileVersion
+     * @param string|null $jsonFileProperties
      *
      * @return string|void
      */
 
-    public function run($version, $jsonFilePatterns = null, $jsonFileBrowsers = null, $jsonFileUas = null)
-    {
+    public function run(
+        $version,
+        $jsonFilePatterns = null,
+        $jsonFileBrowsers = null,
+        $jsonFileUas = null,
+        $jsonFileVersion = null,
+        $jsonFileProperties = null
+    ) {
         return $this
             ->preBuild()
             ->build($version)
-            ->postBuild($version, $jsonFilePatterns, $jsonFileBrowsers, $jsonFileUas)
-        ;
+            ->postBuild(
+                $version,
+                $jsonFilePatterns,
+                $jsonFileBrowsers,
+                $jsonFileUas,
+                $jsonFileVersion,
+                $jsonFileProperties
+            );
     }
 
     /**
@@ -142,6 +156,8 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * @param string|null $jsonFilePatterns
      * @param string|null $jsonFileBrowsers
      * @param string|null $jsonFileUas
+     * @param string|null $jsonFileVersion
+     * @param string|null $jsonFileProperties
      *
      * @return \Browscap\Generator\BuildGenerator
      */
@@ -149,9 +165,28 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $inputVersion = null,
         $jsonFilePatterns = null,
         $jsonFileBrowsers = null,
-        $jsonFileUas = null
+        $jsonFileUas = null,
+        $jsonFileVersion = null,
+        $jsonFileProperties = null
     )
     {
+        $this->getLogger()->info('create preprocessed json files (version)');
+
+        $versionOutput = array(
+            'comments'             => $this->comments,
+            'GJK_Browscap_Version' => array(
+                'version'  => $inputVersion,
+                'released' => $this->collection->getGenerationDate()->format('r'),
+                'format'   => 'json',
+                'type'     => 'FULL',
+            ),
+        );
+
+        file_put_contents(
+            $jsonFileVersion,
+            json_encode($versionOutput, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+
         $this->getLogger()->debug('build output for processed json file');
 
         $division      = $this->collection->getDefaultProperties();
@@ -296,164 +331,194 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             }
         }
 
-        $output = array(
-            'patterns'   => array(),
-            'browsers'   => array(),
-            'userAgents' => array(),
-        );
-
         array_unshift(
             $allProperties,
             'browser_name',
             'browser_name_regex'
         );
-        ksort($allProperties);
 
-        $tmpUserAgents = array_keys($allDivisions);
+        $this->getLogger()->info('create preprocessed json files (property name)');
 
-        $this->getLogger()->info('sort useragent rules by length');
-
-        $fullLength    = array();
-        $reducedLength = array();
-        $keys          = array();
-
-        foreach ($tmpUserAgents as $k => $a) {
-            $fullLength[$k]    = strlen($a);
-            $reducedLength[$k] = strlen(str_replace(array('*', '?'), '', $a));
-            $keys[$k]          = strlen($k);
-        }
-
-        array_multisort(
-            $fullLength, SORT_DESC, SORT_NUMERIC,
-            $reducedLength, SORT_DESC, SORT_NUMERIC,
-            $keys, SORT_ASC, SORT_NUMERIC,
-            $tmpUserAgents
+        file_put_contents(
+            $jsonFileProperties,
+            json_encode(array('properties' => $allProperties), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
         );
 
-        unset($fullLength, $reducedLength, $keys);
-
+        $tmpUserAgents  = array_keys($allDivisions);
         $userAgentsKeys = array_flip($tmpUserAgents);
-        $tmpPatterns    = array();
+        $propertiesKeys = array_flip($allProperties);
 
         $this->getLogger()->info('process all useragents');
 
         $propertyHolder = new PropertyHolder();
 
-        foreach ($tmpUserAgents as $i => $user_agent) {
-            if (empty($allDivisions[$user_agent]['Comment'])
-                || false !== strpos($user_agent, '*')
-                || false !== strpos($user_agent, '?')
+        $outputUseragents = array();
+        $outputBrowsers   = array();
+        $tmpPatterns      = array();
+
+        foreach ($tmpUserAgents as $i => $userAgent) {
+            if (empty($allDivisions[$userAgent]['Comment'])
+                || false !== strpos($userAgent, '*')
+                || false !== strpos($userAgent, '?')
             ) {
-                $pattern = $this->pregQuote($user_agent);
+                $pattern = $this->pregQuote($userAgent);
 
-                $matches_count = preg_match_all(self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER, $pattern, $matches);
+                $countMatches = preg_match_all(
+                    self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER,
+                    $pattern,
+                    $matches
+                );
 
-                if (!$matches_count) {
+                if (!$countMatches) {
                     $tmpPatterns[$pattern] = $i;
                 } else {
-                    $compressed_pattern = preg_replace(self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER, '(\d)', $pattern);
+                    $compressedPattern = preg_replace(
+                        self::REGEX_DELIMITER . '\d' . self::REGEX_DELIMITER,
+                        '(\d)',
+                        $pattern
+                    );
 
-                    if (!isset($tmpPatterns[$compressed_pattern])) {
-                        $tmpPatterns[$compressed_pattern] = array('first' => $pattern);
+                    if (!isset($tmpPatterns[$compressedPattern])) {
+                        $tmpPatterns[$compressedPattern] = array('first' => $pattern);
                     }
 
-                    $tmpPatterns[$compressed_pattern][$i] = $matches[0];
+                    $tmpPatterns[$compressedPattern][$i] = $matches[0];
                 }
             }
 
-            if (!empty($allDivisions[$user_agent]['Parent'])) {
-                $parent = $allDivisions[$user_agent]['Parent'];
+            if (!empty($allDivisions[$userAgent]['Parent'])) {
+                $parent = $allDivisions[$userAgent]['Parent'];
 
                 $parentKey = $userAgentsKeys[$parent];
 
-                $allDivisions[$user_agent]['Parent'] = $parentKey;
-                $output['userAgents'][$parentKey]    = $tmpUserAgents[$parentKey];
+                $allDivisions[$userAgent]['Parent'] = $parentKey;
+                $outputUseragents[$parentKey]       = $tmpUserAgents[$parentKey];
             };
 
-            $browser = array();
-            foreach ($allDivisions[$user_agent] as $property => $value) {
+            $properties = array();
+            foreach ($allDivisions[$userAgent] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property)) {
                     continue;
                 }
 
-                if (isset($allDivisions[$user_agent]['Parent']) && 'Parent' !== $property) {
-                    if ('DefaultProperties' === $allDivisions[$user_agent]['Parent']
-                        || !isset($allDivisions[$allDivisions[$user_agent]['Parent']])
+                if (isset($allDivisions[$userAgent]['Parent']) && 'Parent' !== $property) {
+                    if ('DefaultProperties' === $allDivisions[$userAgent]['Parent']
+                        || !isset($allDivisions[$allDivisions[$userAgent]['Parent']])
                     ) {
                         if (isset($defaultproperties[$property])
-                            && $defaultproperties[$property] === $allDivisions[$user_agent][$property]
+                            && $defaultproperties[$property] === $allDivisions[$userAgent][$property]
                         ) {
                             continue;
                         }
                     } else {
-                        $parentProperties = $allDivisions[$allDivisions[$user_agent]['Parent']];
+                        $parentProperties = $allDivisions[$allDivisions[$userAgent]['Parent']];
 
                         if (isset($parentProperties[$property])
-                            && $parentProperties[$property] === $allDivisions[$user_agent][$property]
+                            && $parentProperties[$property] === $allDivisions[$userAgent][$property]
                         ) {
                             continue;
                         }
                     }
                 }
 
-                $browser[$property] = $value;
+                $properties[$property] = $value;
             }
 
-            $output['browsers'][$i] = json_encode($browser, JSON_FORCE_OBJECT);
+            $outputBrowsers[$i] = json_encode($this->resortProperties($properties, $propertiesKeys), JSON_FORCE_OBJECT);
         }
 
-        // reducing memory usage by unsetting $tmp_user_agents
-        unset($tmpUserAgents);
+        $this->getLogger()->info('create preprocessed json files (browser data)');
 
-        ksort($output['userAgents']);
-        ksort($output['browsers']);
+        file_put_contents(
+            $jsonFileBrowsers,
+            json_encode(array('browsers' => $outputBrowsers), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+
+        $this->getLogger()->info('create preprocessed json files (useragent names)');
+
+        file_put_contents(
+            $jsonFileUas,
+            json_encode(array('userAgents' => $outputUseragents), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+        );
+
+        // reducing memory usage by unsetting variables
+        unset($tmpUserAgents);
+        unset($outputBrowsers);
+        unset($outputUseragents);
 
         $this->getLogger()->info('process all patterns');
 
-        foreach ($tmpPatterns as $pattern => $pattern_data) {
-            if (is_int($pattern_data) || is_string($pattern_data)) {
-                $output['patterns'][$pattern] = $pattern_data;
-            } elseif (2 == count($pattern_data)) {
-                end($pattern_data);
-                $output['patterns'][$pattern_data['first']] = key($pattern_data);
+        $outputPatterns = array();
+
+        foreach ($tmpPatterns as $pattern => $patternData) {
+            if (is_int($patternData) || is_string($patternData)) {
+                $outputPatterns[$pattern] = $patternData;
+            } elseif (2 == count($patternData)) {
+                end($patternData);
+                $outputPatterns[$patternData['first']] = key($patternData);
             } else {
-                unset($pattern_data['first']);
+                unset($patternData['first']);
 
-                $pattern_data = $this->deduplicateCompressionPattern($pattern_data, $pattern);
+                $patternData = $this->deduplicateCompressionPattern($patternData, $pattern);
 
-                $output['patterns'][$pattern] = $pattern_data;
+                $outputPatterns[$pattern] = $patternData;
             }
         }
 
         // reducing memory usage by unsetting $tmp_user_agents
         unset($tmpPatterns);
 
-        $this->getLogger()->info('create preprocessed json files');
+        $this->getLogger()->info('sort all patterns');
 
-        $patternOutput = array(
-            'comments'             => $this->comments,
-            'GJK_Browscap_Version' => array(
-                'version'  => $inputVersion,
-                'released' => $this->collection->getGenerationDate()->format('r'),
-                'format'   => 'json',
-                'type'     => 'FULL',
-            ),
-            'patterns'             => $output['patterns'],
+        $positionIndex = array();
+        $lengthIndex   = array();
+        $shortLength   = array();
+        $patternArray  = array();
+        $counter       = 0;
+
+        foreach (array_keys($outputPatterns) as $pattern) {
+            $decodedPattern = str_replace('(\d)', 0, $this->pregUnQuote($pattern, false));
+
+            // force "defaultproperties" (if available) to first position, and "*" to last position
+            if ($decodedPattern === 'defaultproperties') {
+                $positionIndex[$pattern] = 0;
+            } elseif ($decodedPattern === '*') {
+                $positionIndex[$pattern] = 2;
+            } else {
+                $positionIndex[$pattern] = 1;
+            }
+
+            // sort by length
+            $lengthIndex[$pattern] = strlen($decodedPattern);
+            $shortLength[$pattern] = strlen(str_replace(array('*', '?'), '', $decodedPattern));
+
+            // sort by original order
+            $patternArray[$pattern] = $counter;
+
+            $counter++;
+        }
+
+        array_multisort(
+            $positionIndex,
+            SORT_ASC,
+            SORT_NUMERIC,
+            $lengthIndex,
+            SORT_DESC,
+            SORT_NUMERIC,
+            $shortLength,
+            SORT_DESC,
+            SORT_NUMERIC,
+            $patternArray,
+            SORT_ASC,
+            SORT_NUMERIC,
+            $outputPatterns
         );
+
+        $this->getLogger()->info('create preprocessed json files (patterns)');
 
         file_put_contents(
             $jsonFilePatterns,
-            json_encode($patternOutput, JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
-        );
-
-        file_put_contents(
-            $jsonFileBrowsers,
-            json_encode(array('browsers' => $output['browsers']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
-        );
-
-        file_put_contents(
-            $jsonFileUas,
-            json_encode(array('userAgents' => $output['userAgents']), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
+            json_encode(array('patterns' => $outputPatterns), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
         );
 
         $this->getLogger()->info('create testfiles for browscap.js');
@@ -473,11 +538,41 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $pattern = preg_quote($user_agent, self::REGEX_DELIMITER);
 
         // the \\x replacement is a fix for "Der gro\xdfe BilderSauger 2.00u" user agent match
-        return self::REGEX_DELIMITER
-            . '^'
-            . str_replace(array('\*', '\?', '\\x'), array('.*', '.', '\\\\x'), $pattern)
-            . '$'
-            . self::REGEX_DELIMITER;
+        return str_replace(array('\*', '\?', '\\x'), array('.*', '.', '\\\\x'), $pattern);
+    }
+
+    /**
+     * Converts preg match patterns back to browscap match patterns.
+     *
+     * @param string        $pattern
+     * @param array|boolean $matches
+     *
+     * @return string
+     */
+    private function pregUnQuote($pattern, $matches)
+    {
+        // list of escaped characters: http://www.php.net/manual/en/function.preg-quote.php
+        // to properly unescape '?' which was changed to '.', I replace '\.' (real dot) with '\?',
+        // then change '.' to '?' and then '\?' to '.'.
+        $search  = array(
+            '\\' . self::REGEX_DELIMITER, '\\.', '\\\\', '\\+', '\\[', '\\^', '\\]', '\\$', '\\(', '\\)', '\\{', '\\}',
+            '\\=', '\\!', '\\<', '\\>', '\\|', '\\:', '\\-', '.*', '.', '\\?'
+        );
+        $replace = array(
+            self::REGEX_DELIMITER, '\\?', '\\', '+', '[', '^', ']', '$', '(', ')', '{', '}', '=', '!', '<', '>', '|',
+            ':', '-', '*', '?', '.'
+        );
+
+        $result = substr(str_replace($search, $replace, $pattern), 2, -2);
+
+        if ($matches) {
+            foreach ($matches as $oneMatch) {
+                $position = strpos($result, '(\d)');
+                $result   = substr_replace($result, $oneMatch, $position, 4);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -719,5 +814,26 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
         $filecontent .= '});' . "\n";
 
         file_put_contents($buildFolder . '/test/' . $filename, $filecontent);
+    }
+
+    /**
+     * @param array $properties
+     * @param array $propertiesKeys
+     *
+     * @return array
+     */
+    private function resortProperties(array $properties, array $propertiesKeys)
+    {
+        $browser = array();
+
+        foreach ($properties as $propertyName => $propertyValue) {
+            if (!isset($propertiesKeys[$propertyName])) {
+                continue;
+            }
+
+            $browser[$propertiesKeys[$propertyName]] = $propertyValue;
+        }
+
+        return $browser;
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "956eb43a08798fbc4f136882825fdffd",
+    "hash": "cd76213fcac254edf3d4f1d9cf7d33ae",
     "content-hash": "918d9fb68aeaeb7675678078a09f5258",
     "packages": [
         {
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/browscap/browscap.git",
-                "reference": "d55e75971499f54ba70aeb0f10c1fed149a649c9"
+                "reference": "29c09be6111e86702dc1320c283ec499819213be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/browscap/browscap/zipball/d55e75971499f54ba70aeb0f10c1fed149a649c9",
-                "reference": "d55e75971499f54ba70aeb0f10c1fed149a649c9",
+                "url": "https://api.github.com/repos/browscap/browscap/zipball/29c09be6111e86702dc1320c283ec499819213be",
+                "reference": "29c09be6111e86702dc1320c283ec499819213be",
                 "shasum": ""
             },
             "require": {
@@ -72,7 +72,7 @@
             "keywords": [
                 "Browscap"
             ],
-            "time": "2015-09-28 16:44:05"
+            "time": "2015-09-30 12:17:37"
         },
         {
             "name": "composer/composer",
@@ -80,12 +80,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "c41079192f38f0fc446b17baa8f628dcb3b61e7d"
+                "reference": "5ccaad92c19ac673435dbb2858ae20d14f34950d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/c41079192f38f0fc446b17baa8f628dcb3b61e7d",
-                "reference": "c41079192f38f0fc446b17baa8f628dcb3b61e7d",
+                "url": "https://api.github.com/repos/composer/composer/zipball/5ccaad92c19ac673435dbb2858ae20d14f34950d",
+                "reference": "5ccaad92c19ac673435dbb2858ae20d14f34950d",
                 "shasum": ""
             },
             "require": {
@@ -146,7 +146,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2015-09-28 09:38:16"
+            "time": "2015-09-30 10:52:04"
         },
         {
             "name": "composer/semver",

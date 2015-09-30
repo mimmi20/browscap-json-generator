@@ -41,9 +41,5 @@
       "BrowscapTest\\": "tests/"
     }
   },
-  "bin": ["bin/browscap-with-json"],
-  "scripts": {
-    "post-install-cmd": ["Browscap\\Tool\\ComposerHook::postInstall"],
-    "post-update-cmd": ["Browscap\\Tool\\ComposerHook::postUpdate"]
-  }
+  "bin": ["bin/browscap-with-json"]
 }
