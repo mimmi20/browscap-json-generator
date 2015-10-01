@@ -22,6 +22,7 @@
   },
   "require": {
     "php": ">= 5.5.0",
+    "browscap/browscap-php": "dev-master",
     "browscap/browscap": "dev-master",
     "symfony/console": "~2",
     "composer/composer": "dev-master"
