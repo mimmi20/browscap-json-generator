@@ -127,8 +127,7 @@ class BuildJsonCommand extends Command
                 $buildFolder . '/sources/browscap.preprocessed.patterns.json',
                 $buildFolder . '/sources/browscap.preprocessed.browsers.json',
                 $buildFolder . '/sources/browscap.preprocessed.useragents.json',
-                $buildFolder . '/sources/browscap.preprocessed.version.json',
-                $buildFolder . '/sources/browscap.preprocessed.properties.json'
+                $buildFolder . '/sources/browscap.preprocessed.version.json'
             )
         ;
 

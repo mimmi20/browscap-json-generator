@@ -73,7 +73,6 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * @param string|null $jsonFileBrowsers
      * @param string|null $jsonFileUas
      * @param string|null $jsonFileVersion
-     * @param string|null $jsonFileProperties
      *
      * @return string|void
      */
@@ -83,8 +82,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $jsonFilePatterns = null,
         $jsonFileBrowsers = null,
         $jsonFileUas = null,
-        $jsonFileVersion = null,
-        $jsonFileProperties = null
+        $jsonFileVersion = null
     ) {
         return $this
             ->preBuild()
@@ -94,8 +92,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                 $jsonFilePatterns,
                 $jsonFileBrowsers,
                 $jsonFileUas,
-                $jsonFileVersion,
-                $jsonFileProperties
+                $jsonFileVersion
             );
     }
 
@@ -157,7 +154,6 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
      * @param string|null $jsonFileBrowsers
      * @param string|null $jsonFileUas
      * @param string|null $jsonFileVersion
-     * @param string|null $jsonFileProperties
      *
      * @return \Browscap\Generator\BuildGenerator
      */
@@ -166,8 +162,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
         $jsonFilePatterns = null,
         $jsonFileBrowsers = null,
         $jsonFileUas = null,
-        $jsonFileVersion = null,
-        $jsonFileProperties = null
+        $jsonFileVersion = null
     ) {
         $this->getLogger()->info('create preprocessed json files (version)');
 
@@ -336,16 +331,8 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
             'browser_name_regex'
         );
 
-        $this->getLogger()->info('create preprocessed json files (property name)');
-
-        file_put_contents(
-            $jsonFileProperties,
-            json_encode(array('properties' => $allProperties), JSON_PRETTY_PRINT | JSON_FORCE_OBJECT)
-        );
-
         $tmpUserAgents  = array_keys($allDivisions);
         $userAgentsKeys = array_flip($tmpUserAgents);
-        $propertiesKeys = array_flip($allProperties);
 
         $this->getLogger()->info('process all useragents');
 
@@ -423,7 +410,7 @@ class BrowscapJsonGenerator extends AbstractBuildGenerator
                 $properties[$property] = $value;
             }
 
-            $outputBrowsers[$i] = json_encode($this->resortProperties($properties, $propertiesKeys), JSON_FORCE_OBJECT);
+            $outputBrowsers[$i] = json_encode($properties, JSON_FORCE_OBJECT);
         }
 
         $this->getLogger()->info('create preprocessed json files (browser data)');
@@ -813,26 +800,5 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
         $filecontent .= '});' . "\n";
 
         file_put_contents($buildFolder . '/test/' . $filename, $filecontent);
-    }
-
-    /**
-     * @param array $properties
-     * @param array $propertiesKeys
-     *
-     * @return array
-     */
-    private function resortProperties(array $properties, array $propertiesKeys)
-    {
-        $browser = array();
-
-        foreach ($properties as $propertyName => $propertyValue) {
-            if (!isset($propertiesKeys[$propertyName])) {
-                continue;
-            }
-
-            $browser[$propertiesKeys[$propertyName]] = $propertyValue;
-        }
-
-        return $browser;
     }
 }
