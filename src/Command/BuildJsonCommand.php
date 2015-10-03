@@ -17,16 +17,18 @@
 
 namespace Browscap\Command;
 
+use Browscap\Cache\Adapter\JsonFile;
+use Browscap\Cache\JsonCache;
 use Browscap\Generator\BrowscapJsonGenerator;
-use Browscap\Generator\BuildGenerator;
-use Browscap\Helper\CollectionCreator;
 use Browscap\Helper\LoggerHelper;
-use Browscap\Writer\Factory\FullCollectionFactory;
+use BrowscapPHP\Browscap;
+use BrowscapPHP\Cache\BrowscapCache;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use WurflCache\Adapter\File;
 
 /**
  * Class BuildCommand
@@ -95,41 +97,32 @@ class BuildJsonCommand extends Command
             mkdir($buildFolder, 0775, true);
         }
 
-        $buildGenerator = new BuildGenerator(
-            $input->getOption('resources'),
-            $buildFolder
-        );
-
-        $writerCollectionFactory = new FullCollectionFactory();
-        $writerCollection        = $writerCollectionFactory->createCollection($logger, $buildFolder);
-
-        $buildGenerator
-            ->setLogger($logger)
-            ->setCollectionCreator(new CollectionCreator())
-            ->setWriterCollection($writerCollection)
-        ;
-
-        $buildGenerator->run($version);
+        if (!file_exists($buildFolder . 'cache/')) {
+            mkdir($buildFolder . 'cache/', 0775, true);
+        }
 
         if (!file_exists($buildFolder . 'sources/')) {
             mkdir($buildFolder . 'sources/', 0775, true);
         }
 
-        $buildJsonGenerator = new BrowscapJsonGenerator(
-            $input->getOption('resources'),
-            $buildFolder
-        );
+        if (!file_exists($buildFolder . 'test/')) {
+            mkdir($buildFolder . 'test/', 0775, true);
+        }
 
-        $buildJsonGenerator
-            ->setLogger($logger)
-            ->run(
-                $input->getArgument('version'),
-                $buildFolder . '/sources/browscap.preprocessed.patterns.json',
-                $buildFolder . '/sources/browscap.preprocessed.browsers.json',
-                $buildFolder . '/sources/browscap.preprocessed.useragents.json',
-                $buildFolder . '/sources/browscap.preprocessed.version.json'
-            )
-        ;
+        $cacheAdapter = new JsonFile(array(JsonFile::DIR => $buildFolder . 'sources/'));
+        $cache        = new JsonCache($cacheAdapter);
+        //$cacheAdapter = new File(array(File::DIR => $buildFolder . 'sources/'));
+        //$cache        = new BrowscapCache($cacheAdapter);
+
+        $browscap = new Browscap();
+        $browscap->setLogger($logger);
+        $browscap->setCache($cache);
+
+        $browscap->update(null, $buildFolder . 'cache/', $version);
+
+        $testGenerator = new BrowscapJsonGenerator();
+        $testGenerator->setLogger($logger);
+        $testGenerator->createTestfiles($buildFolder . 'test/');
 
         $logger->info('Build done.');
     }
