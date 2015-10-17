@@ -20,15 +20,9 @@
     "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
     "source": "https://github.com/mimmi20/browscap-json-generator"
   },
-  "repositories": [
-    {
-      "type": "git",
-      "url":  "https://github.com/mimmi20/browscap-php.git"
-    }
-  ],
   "require": {
-    "php": ">= 5.5.0",
-    "browscap/browscap-php": "dev-use-interface",
+    "php": ">= 5.6.0",
+    "browscap/browscap-php": "dev-master",
     "browscap/browscap": "dev-master",
     "symfony/console": "~2",
     "composer/composer": "dev-master"
