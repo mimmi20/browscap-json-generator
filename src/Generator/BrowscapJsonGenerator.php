@@ -80,7 +80,9 @@ class BrowscapJsonGenerator
     {
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
-        $filecontent = 'var assert = require(\'assert\'),
+        $filecontent = '"use strict";
+
+var assert = require(\'assert\'),
     Browscap = require(\'../browscap.js\'),
     browscap = new Browscap(),
     browser;
