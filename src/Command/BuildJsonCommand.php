@@ -22,13 +22,11 @@ use Browscap\Cache\JsonCache;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Browscap\Helper\LoggerHelper;
 use BrowscapPHP\Browscap;
-use BrowscapPHP\Cache\BrowscapCache;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use WurflCache\Adapter\File;
 
 /**
  * Class BuildCommand
@@ -111,8 +109,6 @@ class BuildJsonCommand extends Command
 
         $cacheAdapter = new JsonFile(array(JsonFile::DIR => $buildFolder . 'sources/'));
         $cache        = new JsonCache($cacheAdapter);
-        //$cacheAdapter = new File(array(File::DIR => $buildFolder . 'sources/'));
-        //$cache        = new BrowscapCache($cacheAdapter);
 
         $browscap = new Browscap();
         $browscap->setLogger($logger);
