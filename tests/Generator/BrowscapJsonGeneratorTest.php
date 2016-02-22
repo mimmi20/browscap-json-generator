@@ -2,16 +2,14 @@
 
 namespace BrowscapTest\Generator;
 
+use Browscap\Data\DataCollection;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Browscap\Generator\CollectionParser;
-use Browscap\Data\DataCollection;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 
 /**
  * Class BrowscapProcessedJsonGeneratorTest
- *
- * @package BrowscapTest\Generator
  */
 class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,7 +22,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         self::markTestSkipped('not read yet');
 
-        $this->logger = new Logger('browscapTest', array(new NullHandler()));
+        $this->logger = new Logger('browscapTest', [new NullHandler()]);
     }
 
     private function getPlatformsJsonFixture()
@@ -54,8 +52,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $dataCollection
             ->setLogger($this->logger)
             ->addPlatformsFile($this->getPlatformsJsonFixture())
-            ->addEnginesFile(__DIR__ . '/../../fixtures/engines/engines.json')
-        ;
+            ->addEnginesFile(__DIR__ . '/../../fixtures/engines/engines.json');
 
         $dateProperty = new \ReflectionProperty(get_class($dataCollection), 'generationDate');
         $dateProperty->setAccessible(true);
@@ -83,8 +80,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $collectionParser = new CollectionParser();
         $collectionParser
             ->setLogger($this->logger)
-            ->setDataCollection($dataCollection)
-        ;
+            ->setDataCollection($dataCollection);
         $collectionData = $collectionParser->parse();
 
         self::assertSame($dataCollection, $collectionParser->getDataCollection());
@@ -92,8 +88,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $generator = new BrowscapJsonGenerator();
         $generator
             ->setLogger($this->logger)
-            ->setCollectionData($collectionData)
-        ;
+            ->setCollectionData($collectionData);
 
         self::assertAttributeSame($collectionData, 'collectionData', $generator);
     }
@@ -105,8 +100,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $collectionParser = new CollectionParser();
         $collectionParser
             ->setLogger($this->logger)
-            ->setDataCollection($dataCollection)
-        ;
+            ->setDataCollection($dataCollection);
         $collectionData = $collectionParser->parse();
 
         self::assertSame($dataCollection, $collectionParser->getDataCollection());
@@ -114,8 +108,7 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $generator = new BrowscapJsonGenerator();
         $generator
             ->setLogger($this->logger)
-            ->setCollectionData($collectionData)
-        ;
+            ->setCollectionData($collectionData);
 
         self::assertSame($collectionData, $generator->getCollectionData());
     }
@@ -135,27 +128,25 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $collectionParser = new CollectionParser();
         $collectionParser
             ->setLogger($this->logger)
-            ->setDataCollection($this->getCollectionData($this->getUserAgentFixtures()))
-        ;
+            ->setDataCollection($this->getCollectionData($this->getUserAgentFixtures()));
         $collectionData = $collectionParser->parse();
 
-        $comments = array(
+        $comments = [
             'Provided courtesy of http://tempdownloads.browserscap.com/',
             'Created on Friday, December 31, 2010 at 12:34 PM UTC',
             'Keep up with the latest goings-on with the project:',
             'Follow us on Twitter <https://twitter.com/browscap>, or...',
             'Like us on Facebook <https://facebook.com/browscap>, or...',
             'Collaborate on GitHub <https://github.com/GaryKeith/browscap>, or...',
-            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.'
-        );
+            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.',
+        ];
 
         $generator = new BrowscapJsonGenerator();
         $generator
             ->setLogger($this->logger)
             ->setCollectionData($collectionData)
             ->setComments($comments)
-            ->setVersionData(array('version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000'))
-        ;
+            ->setVersionData(['version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000']);
 
         $json = $generator->generate();
 
@@ -169,13 +160,13 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         $fixturesDir = __DIR__ . '/../../fixtures/';
 
         return [
-            'bcv' => [$fixturesDir . 'ua/features-bcv.json', $fixturesDir . 'json-pre/features-bcv.json'],
-            'basic' => [$fixturesDir . 'ua/features-basic.json', $fixturesDir . 'json-pre/features-basic.json'],
-            'single-child' => [$fixturesDir . 'ua/features-single-child.json', $fixturesDir . 'json-pre/features-single-child.json'],
-            'multi-child' => [$fixturesDir . 'ua/features-multi-child.json', $fixturesDir . 'json-pre/features-multi-child.json'],
-            'versions' => [$fixturesDir . 'ua/features-versions.json', $fixturesDir . 'json-pre/features-versions.json'],
-            'platforms' => [$fixturesDir . 'ua/features-platforms.json', $fixturesDir . 'json-pre/features-platforms.json'],
-            'child-props' => [$fixturesDir . 'ua/features-child-props.json', $fixturesDir . 'json-pre/features-child-props.json'],
+            'bcv'            => [$fixturesDir . 'ua/features-bcv.json', $fixturesDir . 'json-pre/features-bcv.json'],
+            'basic'          => [$fixturesDir . 'ua/features-basic.json', $fixturesDir . 'json-pre/features-basic.json'],
+            'single-child'   => [$fixturesDir . 'ua/features-single-child.json', $fixturesDir . 'json-pre/features-single-child.json'],
+            'multi-child'    => [$fixturesDir . 'ua/features-multi-child.json', $fixturesDir . 'json-pre/features-multi-child.json'],
+            'versions'       => [$fixturesDir . 'ua/features-versions.json', $fixturesDir . 'json-pre/features-versions.json'],
+            'platforms'      => [$fixturesDir . 'ua/features-platforms.json', $fixturesDir . 'json-pre/features-platforms.json'],
+            'child-props'    => [$fixturesDir . 'ua/features-child-props.json', $fixturesDir . 'json-pre/features-child-props.json'],
             'platform-props' => [$fixturesDir . 'ua/features-platform-props.json', $fixturesDir . 'json-pre/features-platform-props.json'],
         ];
     }
@@ -195,23 +186,22 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
             );
         $collectionData = $collectionParser->parse();
 
-        $comments = array(
+        $comments = [
             'Provided courtesy of http://tempdownloads.browserscap.com/',
             'Created on Friday, December 31, 2010 at 12:34 PM UTC',
             'Keep up with the latest goings-on with the project:',
             'Follow us on Twitter <https://twitter.com/browscap>, or...',
             'Like us on Facebook <https://facebook.com/browscap>, or...',
             'Collaborate on GitHub <https://github.com/GaryKeith/browscap>, or...',
-            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.'
-        );
+            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.',
+        ];
 
         $generator = new BrowscapJsonGenerator();
         $generator
             ->setLogger($this->logger)
             ->setCollectionData($collectionData)
             ->setComments($comments)
-            ->setVersionData(array('version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000'))
-        ;
+            ->setVersionData(['version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000']);
 
         $json = $generator->generate();
 
@@ -232,29 +222,28 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
                 $this->getCollectionData(
                     [
                         $fixturesDir . 'ua/default-properties.json',
-                        $fixturesDir . 'ua/features-skip-invalid-children.json'
+                        $fixturesDir . 'ua/features-skip-invalid-children.json',
                     ]
                 )
             );
         $collectionData = $collectionParser->parse();
 
-        $comments = array(
+        $comments = [
             'Provided courtesy of http://tempdownloads.browserscap.com/',
             'Created on Friday, December 31, 2010 at 12:34 PM UTC',
             'Keep up with the latest goings-on with the project:',
             'Follow us on Twitter <https://twitter.com/browscap>, or...',
             'Like us on Facebook <https://facebook.com/browscap>, or...',
             'Collaborate on GitHub <https://github.com/GaryKeith/browscap>, or...',
-            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.'
-        );
+            'Discuss on Google Groups <https://groups.google.com/d/forum/browscap>.',
+        ];
 
         $generator = new BrowscapJsonGenerator();
         $generator
             ->setLogger($this->logger)
             ->setCollectionData($collectionData)
             ->setComments($comments)
-            ->setVersionData(array('version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000'))
-        ;
+            ->setVersionData(['version' => '1234', 'released' => 'Fri, 31 Dec 2010 12:34:56 +0000']);
 
         $generator->generate();
     }

@@ -10,7 +10,7 @@
  * Refer to the LICENSE file distributed with this package.
  *
  * @category   BrowscapWithJson
- * @package    BrowscapWithJson
+ *
  * @copyright  1998-2014 Browser Capabilities Project
  * @license    MIT
  */
@@ -23,7 +23,7 @@ use Symfony\Component\Console\Application;
  * Class BrowscapWithJson
  *
  * @category   BrowscapWithJson
- * @package    BrowscapWithJson
+ *
  * @author     James Titcumb <james@asgrim.com>
  */
 class BrowscapWithJson extends Application
@@ -32,11 +32,11 @@ class BrowscapWithJson extends Application
     {
         parent::__construct('Browser Capabilities Project', 'dev-master');
 
-        $commands = array(
+        $commands = [
             new Command\BuildJsonCommand(),
             new Command\DiffCommand(),
             new Command\GrepCommand(),
-        );
+        ];
 
         foreach ($commands as $command) {
             $this->add($command);

@@ -8,8 +8,6 @@ use Psr\Log\NullLogger;
 
 /**
  * Class BrowscapJsonGenerator
- *
- * @package Browscap\Generator
  */
 class BrowscapJsonGenerator
 {
@@ -58,7 +56,7 @@ class BrowscapJsonGenerator
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
             /** @var $file \SplFileInfo */
-            if (!$file->isFile() || $file->getExtension() != 'php') {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
                 continue;
             }
 
@@ -107,7 +105,7 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
             }
 
             $rule = $test[0];
-            $rule = str_replace(array('\\', '"'), array('\\\\', '\"'), $rule);
+            $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
             $filecontent .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
             $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";

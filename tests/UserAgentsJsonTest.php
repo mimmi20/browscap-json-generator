@@ -10,23 +10,23 @@
  * Refer to the LICENSE file distributed with this package.
  *
  * @category   BrowscapTest
- * @package    Test
+ *
  * @copyright  1998-2014 Browser Capabilities Project
  * @license    MIT
  */
 
 namespace BrowscapTest;
 
+use Browscap\Data\PropertyHolder;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
-use Browscap\Data\PropertyHolder;
 
 /**
  * Class UserAgentsTest
  *
  * @category   BrowscapTest
- * @package    Test
+ *
  * @author     James Titcumb <james@asgrim.com>
  */
 class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
@@ -63,18 +63,18 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
      */
     public function userAgentDataProvider()
     {
-        $data            = array();
+        $data            = [];
         $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
 
         $iterator = new \RecursiveDirectoryIterator($sourceDirectory);
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
             /** @var $file \SplFileInfo */
-            if (!$file->isFile() || $file->getExtension() != 'php') {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
                 continue;
             }
 
-            $data[] = array($file);
+            $data[] = [$file];
         }
 
         return $data;
@@ -83,6 +83,7 @@ class UserAgentsJsonTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider userAgentDataProvider
      * @coversNothing
+     *
      * @param \SplFileInfo $file
      */
     public function testCreateTestFiles(\SplFileInfo $file)
@@ -117,7 +118,7 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
             $filecontent .= '  test(\'' . $key . '\', function () {' . "\n";
 
             $rule = $test[0];
-            $rule = str_replace(array('\\', '"'), array('\\\\', '\"'), $rule);
+            $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
             $filecontent .= '    browser = browscap.getBrowser("' . $rule . '");' . "\n\n";
 

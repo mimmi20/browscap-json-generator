@@ -10,7 +10,7 @@
  * Refer to the LICENSE file distributed with this package.
  *
  * @category   BrowscapWithJson
- * @package    Command
+ *
  * @copyright  1998-2014 Browser Capabilities Project
  * @license    MIT
  */
@@ -32,7 +32,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Class BuildCommand
  *
  * @category   BrowscapWithJson
- * @package    Command
+ *
  * @author     James Titcumb <james@asgrim.com>
  */
 class BuildJsonCommand extends Command
@@ -61,8 +61,7 @@ class BuildJsonCommand extends Command
             ->addArgument('version', InputArgument::REQUIRED, 'Version number to apply')
             ->addOption('output', null, InputOption::VALUE_REQUIRED, 'Where to output the build files to', $defaultBuildFolder)
             ->addOption('resources', null, InputOption::VALUE_REQUIRED, 'Where the resource files are located', $defaultResourceFolder)
-            ->addOption('debug', null, InputOption::VALUE_NONE, 'Should the debug mode entered?')
-        ;
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Should the debug mode entered?');
     }
 
     /**
@@ -76,9 +75,10 @@ class BuildJsonCommand extends Command
      * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
-     * @return null|integer null or 0 if everything went fine, or an error code
-     *
      * @throws \LogicException When this abstract method is not implemented
+     *
+     * @return null|int null or 0 if everything went fine, or an error code
+     *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -107,7 +107,7 @@ class BuildJsonCommand extends Command
             mkdir($buildFolder . 'test/', 0775, true);
         }
 
-        $cacheAdapter = new JsonFile(array(JsonFile::DIR => $buildFolder . 'sources/'));
+        $cacheAdapter = new JsonFile([JsonFile::DIR => $buildFolder . 'sources/']);
         $cache        = new JsonCache($cacheAdapter);
 
         $browscap = new Browscap();
