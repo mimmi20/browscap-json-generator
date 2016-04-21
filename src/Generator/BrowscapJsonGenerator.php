@@ -97,20 +97,20 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                 throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
             }
 
-            if (isset($checks[$test[0]])) {
+            if (isset($checks[$test['ua']])) {
                 throw new \RuntimeException(
-                    'UA "' . $test[0] . '" added more than once, now for key "' . $key . '", before for key "'
-                    . $checks[$test[0]] . '"'
+                    'UA "' . $test['ua'] . '" added more than once, now for key "' . $key . '", before for key "'
+                    . $checks[$test['ua']] . '"'
                 );
             }
 
-            $rule = $test[0];
+            $rule = $test['ua'];
             $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
             $filecontent .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
             $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
-            foreach ($test[1] as $property => $value) {
+            foreach ($test['properties'] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property)) {
                     continue;
                 }
