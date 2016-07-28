@@ -20,8 +20,13 @@ namespace Browscap\Command;
 use Browscap\Cache\Adapter\JsonFile;
 use Browscap\Cache\JsonCache;
 use Browscap\Generator\BrowscapJsonGenerator;
+use Browscap\Generator\BuildGenerator;
+use Browscap\Helper\CollectionCreator;
 use Browscap\Helper\LoggerHelper;
+use Browscap\Writer\Factory\FullPhpWriterFactory;
 use BrowscapPHP\Browscap;
+use BrowscapPHP\BrowscapUpdater;
+use BrowscapPHP\Helper\IniLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -110,16 +115,37 @@ class BuildJsonCommand extends Command
         $cacheAdapter = new JsonFile([JsonFile::DIR => $buildFolder . 'sources/']);
         $cache        = new JsonCache($cacheAdapter);
 
-        $browscap = new Browscap();
-        $browscap->setLogger($logger);
-        $browscap->setCache($cache);
+        $buildGenerator = new BuildGenerator(
+            $input->getOption('resources'),
+            $buildFolder
+        );
 
-        $browscap->update(null, $buildFolder . 'cache/', $version);
+        $writerCollectionFactory = new FullPhpWriterFactory();
+        $writerCollection        = $writerCollectionFactory->createCollection($logger, $buildFolder);
+
+        $buildGenerator
+            ->setLogger($logger)
+            ->setCollectionCreator(new CollectionCreator())
+            ->setWriterCollection($writerCollection);
+
+        $buildGenerator->run($input->getArgument('version'));
+
+        $logger->info('Build done.');
+        $logger->info('Converting started.');
+
+        $browscapUpdater = new BrowscapUpdater();
+        $browscapUpdater->setLogger($logger);
+        $browscapUpdater->setCache($cache);
+
+        $browscapUpdater->convertFile($buildFolder . 'full_php_browscap.ini');
+
+        $logger->info('Converting done.');
+        $logger->info('Creating Testfiles started.');
 
         $testGenerator = new BrowscapJsonGenerator();
         $testGenerator->setLogger($logger);
         $testGenerator->createTestfiles($buildFolder . 'test/');
 
-        $logger->info('Build done.');
+        $logger->info('Creating Testfiles done.');
     }
 }

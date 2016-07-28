@@ -23,14 +23,14 @@
   "require": {
     "php": ">= 5.6.0",
     "browscap/browscap-php": "dev-master",
-    "browscap/browscap": "dev-master#8976dd6",
+    "browscap/browscap": "dev-master#e19a129",
     "mimmi20/browscap-json-cache": "^1.0",
-    "symfony/console": "^2.6|^3.0"
+    "symfony/console": "^2.0 || ^3.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^5.2",
+    "phpunit/phpunit": "^5.3",
     "squizlabs/php_codesniffer": "^2.5",
-    "fabpot/php-cs-fixer": "^1.11"
+    "friendsofphp/php-cs-fixer": "^1.11"
   },
   "autoload": {
     "psr-4": {
