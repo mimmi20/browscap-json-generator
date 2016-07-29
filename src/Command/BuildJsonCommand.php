@@ -26,7 +26,6 @@ use Browscap\Helper\LoggerHelper;
 use Browscap\Writer\Factory\FullPhpWriterFactory;
 use BrowscapPHP\Browscap;
 use BrowscapPHP\BrowscapUpdater;
-use BrowscapPHP\Helper\IniLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
