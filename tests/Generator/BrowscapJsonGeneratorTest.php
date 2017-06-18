@@ -1,5 +1,14 @@
 <?php
+/**
+ * This file is part of the browscap-json-generator package.
+ *
+ * Copyright (c) 2012-2017, Thomas Mueller <mimmi20@live.de>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
+declare(strict_types = 1);
 namespace BrowscapTest\Generator;
 
 use Browscap\Data\DataCollection;
@@ -11,7 +20,7 @@ use Monolog\Logger;
 /**
  * Class BrowscapProcessedJsonGeneratorTest
  */
-class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
+class BrowscapJsonGeneratorTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -122,6 +131,8 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider generateFormatsDataProvider
+     *
+     * @param mixed $filename
      */
     public function testGenerateWithDifferentFormattingOptions($filename)
     {
@@ -173,6 +184,9 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider generateFeaturesDataProvider
+     *
+     * @param mixed $jsonFile
+     * @param mixed $expectedFilename
      */
     public function testGenerateFeatures($jsonFile, $expectedFilename)
     {
@@ -208,11 +222,10 @@ class BrowscapJsonGeneratorTest extends \PHPUnit_Framework_TestCase
         self::assertStringEqualsFile($expectedFilename, $json);
     }
 
-    /**
-     * @expectedException \LogicException
-     */
     public function testGenerateInvalidFeatures()
     {
+        $this->expectException('\LogicException');
+        
         $fixturesDir = __DIR__ . '/../../fixtures/';
 
         $collectionParser = new CollectionParser();
