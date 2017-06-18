@@ -1,20 +1,14 @@
 <?php
 /**
- * Copyright (c) 1998-2014 Browser Capabilities Project
+ * This file is part of the browscap-json-generator package.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Copyright (c) 2012-2017, Thomas Mueller <mimmi20@live.de>
  *
- * Refer to the LICENSE file distributed with this package.
- *
- * @category   BrowscapWithJson
- *
- * @copyright  1998-2014 Browser Capabilities Project
- * @license    MIT
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
+declare(strict_types = 1);
 namespace Browscap\Command;
 
 use Browscap\Cache\Adapter\JsonFile;
@@ -64,8 +58,7 @@ class BuildJsonCommand extends Command
             ->setDescription('The JSON source files and builds the INI files')
             ->addArgument('version', InputArgument::REQUIRED, 'Version number to apply')
             ->addOption('output', null, InputOption::VALUE_REQUIRED, 'Where to output the build files to', $defaultBuildFolder)
-            ->addOption('resources', null, InputOption::VALUE_REQUIRED, 'Where the resource files are located', $defaultResourceFolder)
-            ->addOption('debug', null, InputOption::VALUE_NONE, 'Should the debug mode entered?');
+            ->addOption('resources', null, InputOption::VALUE_REQUIRED, 'Where the resource files are located', $defaultResourceFolder);
     }
 
     /**
@@ -88,7 +81,7 @@ class BuildJsonCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $loggerHelper = new LoggerHelper();
-        $logger       = $loggerHelper->create($input->getOption('debug'));
+        $logger       = $loggerHelper->create($output);
 
         $logger->info('Build started.');
 
