@@ -124,8 +124,6 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                     continue;
                 }
 
-                $valueOutput = '\'' . $value . '\'';
-
                 switch ($propertyHolder->getPropertyType($property)) {
                     case PropertyHolder::TYPE_BOOLEAN:
                         if (true === $value || $value === 'true') {
@@ -142,11 +140,11 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                         }
                         break;
                     default:
-                        // nothing t do here
+                        $valueOutput  = '\'' . addcslashes($value, "'") . '\'';
                         break;
                 }
 
-                $message      = "'Expected actual \"$property\" to be " . addcslashes($valueOutput, "'") . " (was \\'' + browser['$property'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
+                $message      = "'Expected actual \"$property\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['$property'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
                 $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }
 
