@@ -1,36 +1,25 @@
 <?php
-/**
- * This file is part of the browscap-json-generator package.
- *
- * Copyright (c) 2012-2017, Thomas Mueller <mimmi20@live.de>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types = 1);
-namespace Browscap\Generator;
+namespace BrowscapJson\Generator;
 
 use Browscap\Data\PropertyHolder;
+use Browscap\Writer\JsonWriter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-/**
- * Class BrowscapJsonGenerator
- */
 class BrowscapJsonGenerator
 {
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    private $logger = null;
+    private $logger;
 
     /**
      * Sets a logger instance
      *
      * @param \Psr\Log\LoggerInterface $logger
      *
-     * @return \BrowscapPHP\Browscap
+     * @return self
      */
     public function setLogger(LoggerInterface $logger)
     {
@@ -57,15 +46,17 @@ class BrowscapJsonGenerator
      * creates the testfiles for browscap.js
      *
      * @param string $buildFolder
+     *
+     * @return void
      */
-    public function createTestfiles($buildFolder)
+    public function createTestfiles(string $buildFolder) : void
     {
-        $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
+        $sourceDirectory = 'vendor/browscap/browscap/tests/issues/';
         $iterator        = new \RecursiveDirectoryIterator($sourceDirectory);
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
             /** @var $file \SplFileInfo */
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
+            if (!$file->isFile() || 'php' !== $file->getExtension()) {
                 continue;
             }
 
@@ -82,8 +73,10 @@ class BrowscapJsonGenerator
      * @param string       $buildFolder
      *
      * @throws \RuntimeException
+     *
+     * @return void
      */
-    private function createTestFile(\SplFileInfo $file, $buildFolder)
+    private function createTestFile(\SplFileInfo $file, string $buildFolder) : void
     {
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
@@ -100,6 +93,7 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
         $tests = require_once $file->getPathname();
 
         $propertyHolder = new PropertyHolder();
+        $writer         = new JsonWriter('test.json', $this->logger);
 
         foreach ($tests as $key => $test) {
             if (isset($data[$key])) {
@@ -120,17 +114,18 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
             $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
             foreach ($test['properties'] as $property => $value) {
-                if (!$propertyHolder->isOutputProperty($property)) {
+                if (!$propertyHolder->isOutputProperty($property, $writer)) {
                     continue;
                 }
 
                 switch ($propertyHolder->getPropertyType($property)) {
                     case PropertyHolder::TYPE_BOOLEAN:
-                        if (true === $value || $value === 'true') {
+                        if (true === $value || 'true' === $value) {
                             $valueOutput = 'true';
                         } else {
                             $valueOutput = 'false';
                         }
+
                         break;
                     case PropertyHolder::TYPE_IN_ARRAY:
                         try {
@@ -138,9 +133,11 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                         } catch (\InvalidArgumentException $e) {
                             $valueOutput = '""';
                         }
+
                         break;
                     default:
                         $valueOutput  = '\'' . addcslashes($value, "'") . '\'';
+
                         break;
                 }
 
