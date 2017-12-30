@@ -90,6 +90,10 @@ class BrowscapJsonGenerator
     {
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+
+        $tests   = require_once $file->getPathname();
+        $testKey = 'full';
+
         $filecontent = '"use strict";
 
 var assert = require(\'assert\'),
@@ -97,10 +101,8 @@ var assert = require(\'assert\'),
     browscap = new Browscap(),
     browser;
 
-suite(\'checking for issue ' . $testnumber . '\', function () {
+suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (count($tests) != 1 ? 's' : '') . ')\', function () {
 ';
-
-        $tests = require_once $file->getPathname();
 
         $propertyHolder = new PropertyHolder();
         $writer         = new JsonWriter($buildFolder . 'dummy.json', $this->getLogger());
@@ -118,6 +120,14 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                 }
 
                 if (!$propertyHolder->isDeprecatedProperty($property)) {
+                    continue;
+                }
+
+                if (!array_key_exists($testKey, $test)) {
+                    continue;
+                }
+
+                if (!$test[$testKey]) {
                     continue;
                 }
 
