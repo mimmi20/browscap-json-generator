@@ -12,6 +12,7 @@ declare(strict_types = 1);
 namespace Browscap\Generator;
 
 use Browscap\Data\PropertyHolder;
+use Browscap\Writer\JsonWriter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -23,20 +24,18 @@ class BrowscapJsonGenerator
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    private $logger = null;
+    private $logger;
 
     /**
      * Sets a logger instance
      *
      * @param \Psr\Log\LoggerInterface $logger
      *
-     * @return \BrowscapPHP\Browscap
+     * @return void
      */
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
-
-        return $this;
     }
 
     /**
@@ -44,7 +43,7 @@ class BrowscapJsonGenerator
      *
      * @return \Psr\Log\LoggerInterface
      */
-    public function getLogger()
+    public function getLogger(): LoggerInterface
     {
         if (null === $this->logger) {
             $this->logger = new NullLogger();
@@ -57,21 +56,23 @@ class BrowscapJsonGenerator
      * creates the testfiles for browscap.js
      *
      * @param string $buildFolder
+     *
+     * @return void
      */
-    public function createTestfiles($buildFolder)
+    public function createTestfiles(string $buildFolder): void
     {
         $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
         $iterator        = new \RecursiveDirectoryIterator($sourceDirectory);
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
             /** @var $file \SplFileInfo */
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
+            if (!$file->isFile() || 'php' !== $file->getExtension()) {
                 continue;
             }
 
             try {
                 $this->createTestFile($file, $buildFolder);
-            } catch (\RuntimeException $e) {
+            } catch (\Exception $e) {
                 $this->getLogger()->error($e);
             }
         }
@@ -81,9 +82,11 @@ class BrowscapJsonGenerator
      * @param \SplFileInfo $file
      * @param string       $buildFolder
      *
-     * @throws \RuntimeException
+     * @throws \Exception
+     *
+     * @return void
      */
-    private function createTestFile(\SplFileInfo $file, $buildFolder)
+    private function createTestFile(\SplFileInfo $file, string $buildFolder): void
     {
         $filename    = str_replace('.php', '.js', $file->getFilename());
         $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
@@ -100,19 +103,9 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
         $tests = require_once $file->getPathname();
 
         $propertyHolder = new PropertyHolder();
+        $writer         = new JsonWriter($buildFolder . 'dummy.json', $this->getLogger());
 
         foreach ($tests as $key => $test) {
-            if (isset($data[$key])) {
-                throw new \RuntimeException('Test data is duplicated for key "' . $key . '"');
-            }
-
-            if (isset($checks[$test['ua']])) {
-                throw new \RuntimeException(
-                    'UA "' . $test['ua'] . '" added more than once, now for key "' . $key . '", before for key "'
-                    . $checks[$test['ua']] . '"'
-                );
-            }
-
             $rule = $test['ua'];
             $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
@@ -120,17 +113,18 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
             $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
             foreach ($test['properties'] as $property => $value) {
-                if (!$propertyHolder->isOutputProperty($property)) {
+                if (!$propertyHolder->isOutputProperty($property, $writer)) {
                     continue;
                 }
 
                 switch ($propertyHolder->getPropertyType($property)) {
                     case PropertyHolder::TYPE_BOOLEAN:
-                        if (true === $value || $value === 'true') {
+                        if (true === $value || 'true' === $value) {
                             $valueOutput = 'true';
                         } else {
                             $valueOutput = 'false';
                         }
+
                         break;
                     case PropertyHolder::TYPE_IN_ARRAY:
                         try {
@@ -138,9 +132,11 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                         } catch (\InvalidArgumentException $e) {
                             $valueOutput = '""';
                         }
+
                         break;
                     default:
                         $valueOutput  = '\'' . addcslashes($value, "'") . '\'';
+
                         break;
                 }
 

@@ -22,14 +22,15 @@ use Symfony\Component\Console\Application;
  */
 class BrowscapWithJson extends Application
 {
+    /**
+     * BrowscapWithJson constructor.
+     */
     public function __construct()
     {
         parent::__construct('Browser Capabilities Project', 'dev-master');
 
         $commands = [
             new Command\BuildJsonCommand(),
-            new Command\DiffCommand(),
-            new Command\GrepCommand(),
         ];
 
         foreach ($commands as $command) {

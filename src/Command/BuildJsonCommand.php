@@ -13,12 +13,11 @@ namespace Browscap\Command;
 
 use Browscap\Cache\Adapter\JsonFile;
 use Browscap\Cache\JsonCache;
+use Browscap\Data\Factory\DataCollectionFactory;
 use Browscap\Generator\BrowscapJsonGenerator;
 use Browscap\Generator\BuildGenerator;
-use Browscap\Helper\CollectionCreator;
 use Browscap\Helper\LoggerHelper;
 use Browscap\Writer\Factory\FullPhpWriterFactory;
-use BrowscapPHP\Browscap;
 use BrowscapPHP\BrowscapUpdater;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -38,17 +37,19 @@ class BuildJsonCommand extends Command
     /**
      * @var string
      */
-    const DEFAULT_BUILD_FOLDER = 'build';
+    private const DEFAULT_BUILD_FOLDER = 'build';
 
     /**
      * @var string
      */
-    const DEFAULT_RESOURCES_FOLDER = 'vendor/browscap/browscap/resources';
+    private const DEFAULT_RESOURCES_FOLDER = 'vendor/browscap/browscap/resources';
 
     /**
      * Configures the current command.
+     *
+     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $defaultBuildFolder    = self::DEFAULT_BUILD_FOLDER;
         $defaultResourceFolder = self::DEFAULT_RESOURCES_FOLDER;
@@ -72,9 +73,10 @@ class BuildJsonCommand extends Command
      * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
-     * @throws \LogicException When this abstract method is not implemented
+     * @throws \LogicException        When this abstract method is not implemented
+     * @throws \BrowscapPHP\Exception
      *
-     * @return null|int null or 0 if everything went fine, or an error code
+     * @return int|null null or 0 if everything went fine, or an error code
      *
      * @see    setCode()
      */
@@ -107,20 +109,19 @@ class BuildJsonCommand extends Command
         $cacheAdapter = new JsonFile([JsonFile::DIR => $buildFolder . 'sources/']);
         $cache        = new JsonCache($cacheAdapter);
 
-        $buildGenerator = new BuildGenerator(
-            $input->getOption('resources'),
-            $buildFolder
-        );
-
         $writerCollectionFactory = new FullPhpWriterFactory();
         $writerCollection        = $writerCollectionFactory->createCollection($logger, $buildFolder);
+        $dataCollectionFactory   = new DataCollectionFactory($logger);
 
-        $buildGenerator
-            ->setLogger($logger)
-            ->setCollectionCreator(new CollectionCreator())
-            ->setWriterCollection($writerCollection);
+        $buildGenerator = new BuildGenerator(
+            $input->getOption('resources'),
+            $buildFolder,
+            $logger,
+            $writerCollection,
+            $dataCollectionFactory
+        );
 
-        $buildGenerator->run($input->getArgument('version'));
+        $buildGenerator->run($input->getArgument('version'), false);
 
         $logger->info('Build done.');
         $logger->info('Converting started.');
@@ -139,5 +140,7 @@ class BuildJsonCommand extends Command
         $testGenerator->createTestfiles($buildFolder . 'test/');
 
         $logger->info('Creating Testfiles done.');
+
+        return 0;
     }
 }
