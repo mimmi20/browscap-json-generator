@@ -101,7 +101,7 @@ var assert = require(\'assert\'),
     browscap = new Browscap(),
     browser;
 
-suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (count($tests) != 1 ? 's' : '') . ')\', function () {
+suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (1 !== count($tests) ? 's' : '') . ')\', function () {
 ';
 
         $propertyHolder = new PropertyHolder();

@@ -24,7 +24,7 @@
     "php": "^7.1",
     "browscap/browscap-php": "^3.1",
     "browscap/browscap": "dev-master#c28498b",
-    "mimmi20/browscap-json-cache": "^1.0.3",
+    "mimmi20/browscap-json-cache": "^1.0.4",
     "symfony/console": "^3.3||^4.0"
   },
   "require-dev": {
