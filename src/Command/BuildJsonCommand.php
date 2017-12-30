@@ -85,7 +85,7 @@ class BuildJsonCommand extends Command
         $loggerHelper = new LoggerHelper();
         $logger       = $loggerHelper->create($output);
 
-        $logger->info('Build started.');
+        $output->writeln('Build started.');
 
         $version     = $input->getArgument('version');
         $buildFolder = $input->getOption('output') . '/build-' . $version . '/';
@@ -123,8 +123,8 @@ class BuildJsonCommand extends Command
 
         $buildGenerator->run($input->getArgument('version'), false);
 
-        $logger->info('Build done.');
-        $logger->info('Converting started.');
+        $output->writeln('Build done.');
+        $output->writeln('Converting started.');
 
         $browscapUpdater = new BrowscapUpdater();
         $browscapUpdater->setLogger($logger);
@@ -132,14 +132,14 @@ class BuildJsonCommand extends Command
 
         $browscapUpdater->convertFile($buildFolder . 'full_php_browscap.ini');
 
-        $logger->info('Converting done.');
-        $logger->info('Creating Testfiles started.');
+        $output->writeln('Converting done.');
+        $output->writeln('Creating Testfiles started.');
 
         $testGenerator = new BrowscapJsonGenerator();
         $testGenerator->setLogger($logger);
         $testGenerator->createTestfiles($buildFolder . 'test/');
 
-        $logger->info('Creating Testfiles done.');
+        $output->writeln('Creating Testfiles done.');
 
         return 0;
     }

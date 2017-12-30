@@ -61,7 +61,7 @@ class BrowscapJsonGenerator
      */
     public function createTestfiles(string $buildFolder): void
     {
-        $sourceDirectory = 'vendor/browscap/browscap/tests/fixtures/issues/';
+        $sourceDirectory = 'vendor/browscap/browscap/tests/issues/';
         $iterator        = new \RecursiveDirectoryIterator($sourceDirectory);
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
