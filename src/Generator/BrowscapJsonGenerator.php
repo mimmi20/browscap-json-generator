@@ -117,6 +117,10 @@ suite(\'checking for issue ' . $testnumber . '\', function () {
                     continue;
                 }
 
+                if (!$propertyHolder->isDeprecatedProperty($property)) {
+                    continue;
+                }
+
                 switch ($propertyHolder->getPropertyType($property)) {
                     case PropertyHolder::TYPE_BOOLEAN:
                         if (true === $value || 'true' === $value) {
