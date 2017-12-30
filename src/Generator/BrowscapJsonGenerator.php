@@ -127,7 +127,7 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (c
                     continue;
                 }
 
-                if (!$propertyHolder->isDeprecatedProperty($property)) {
+                if ($propertyHolder->isDeprecatedProperty($property)) {
                     continue;
                 }
 
