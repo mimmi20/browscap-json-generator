@@ -108,6 +108,14 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (c
         $writer         = new JsonWriter($buildFolder . 'dummy.json', $this->getLogger());
 
         foreach ($tests as $key => $test) {
+            if (!array_key_exists($testKey, $test)) {
+                continue;
+            }
+
+            if (!$test[$testKey]) {
+                continue;
+            }
+
             $rule = $test['ua'];
             $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
@@ -120,14 +128,6 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (c
                 }
 
                 if (!$propertyHolder->isDeprecatedProperty($property)) {
-                    continue;
-                }
-
-                if (!array_key_exists($testKey, $test)) {
-                    continue;
-                }
-
-                if (!$test[$testKey]) {
                     continue;
                 }
 
