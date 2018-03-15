@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-json-generator package.
  *
- * Copyright (c) 2012-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2012-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace Browscap\Command;
 
+use Assert\Assert;
 use Browscap\Cache\Adapter\JsonFile;
 use Browscap\Cache\JsonCache;
 use Browscap\Data\Factory\DataCollectionFactory;
@@ -19,19 +20,12 @@ use Browscap\Generator\BuildGenerator;
 use Browscap\Helper\LoggerHelper;
 use Browscap\Writer\Factory\FullPhpWriterFactory;
 use BrowscapPHP\BrowscapUpdater;
+use PackageInfo\Package;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Class BuildCommand
- *
- * @category   BrowscapWithJson
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 class BuildJsonCommand extends Command
 {
     /**
@@ -57,14 +51,12 @@ class BuildJsonCommand extends Command
         $this
             ->setName('build')
             ->setDescription('The JSON source files and builds the INI files')
-            ->addArgument('version', InputArgument::REQUIRED, 'Version number to apply')
             ->addOption('output', null, InputOption::VALUE_REQUIRED, 'Where to output the build files to', $defaultBuildFolder)
             ->addOption('resources', null, InputOption::VALUE_REQUIRED, 'Where the resource files are located', $defaultResourceFolder);
     }
 
     /**
      * Executes the current command.
-     *
      * This method is not abstract because you can use this class
      * as a concrete class. In this case, instead of defining the
      * execute() method, you set the code to execute by passing
@@ -73,8 +65,9 @@ class BuildJsonCommand extends Command
      * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
-     * @throws \LogicException        When this abstract method is not implemented
+     * @throws \Assert\AssertionFailedException
      * @throws \BrowscapPHP\Exception
+     * @throws \Exception
      *
      * @return int|null null or 0 if everything went fine, or an error code
      *
@@ -87,8 +80,10 @@ class BuildJsonCommand extends Command
 
         $output->writeln('Build started.');
 
-        $version     = $input->getArgument('version');
-        $buildFolder = $input->getOption('output') . '/build-' . $version . '/';
+        $package        = new Package('browscap/browscap');
+        $packageVersion = $package->getVersion();
+        $version        = $this->convertPackageVersionToBuildNumber($packageVersion);
+        $buildFolder    = $input->getOption('output') . '/build-' . $version . '/';
 
         if (!file_exists($buildFolder)) {
             mkdir($buildFolder, 0775, true);
@@ -121,7 +116,7 @@ class BuildJsonCommand extends Command
             $dataCollectionFactory
         );
 
-        $buildGenerator->run($input->getArgument('version'), false);
+        $buildGenerator->run((string) $version, false);
 
         $output->writeln('Build done.');
         $output->writeln('Converting started.');
@@ -142,5 +137,21 @@ class BuildJsonCommand extends Command
         $output->writeln('Creating Testfiles done.');
 
         return 0;
+    }
+
+    /**
+     * Converts a package number e.g. 1.2.3 into a "build number" e.g. 1002003
+     *
+     * There are three digits for each version, so 001002003 becomes 1002003 when cast to int to drop the leading zeros
+     *
+     * @param string $version
+     *
+     * @return int
+     */
+    private function convertPackageVersionToBuildNumber(string $version): int
+    {
+        Assert::that($version)->regex('#^(\d+\.)(\d+\.)(\d+)$#');
+
+        return (int) sprintf('%03d%03d%03d', ...explode('.', $version));
     }
 }

@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-json-generator package.
  *
- * Copyright (c) 2012-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2012-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,9 +16,6 @@ use Browscap\Writer\JsonWriter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-/**
- * Class BrowscapJsonGenerator
- */
 class BrowscapJsonGenerator
 {
     /**
@@ -88,8 +85,8 @@ class BrowscapJsonGenerator
      */
     private function createTestFile(\SplFileInfo $file, string $buildFolder): void
     {
-        $filename    = str_replace('.php', '.js', $file->getFilename());
-        $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+        $filename   = str_replace('.php', '.js', $file->getFilename());
+        $testnumber = str_replace('issue-', '', $file->getBasename($file->getExtension()));
 
         $tests   = require_once $file->getPathname();
         $testKey = 'full';
@@ -149,12 +146,12 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (1
 
                         break;
                     default:
-                        $valueOutput  = '\'' . addcslashes($value, "'") . '\'';
+                        $valueOutput = '\'' . addcslashes($value, "'") . '\'';
 
                         break;
                 }
 
-                $message      = "'Expected actual \"$property\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['$property'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
+                $message = "'Expected actual \"${property}\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['${property}'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
                 $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }
 
