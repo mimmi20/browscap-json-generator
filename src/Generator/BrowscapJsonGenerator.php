@@ -91,14 +91,36 @@ class BrowscapJsonGenerator
         $tests   = require_once $file->getPathname();
         $testKey = 'full';
 
-        $filecontent = '"use strict";
+        $testCount = 0;
+
+        foreach ($tests as $key => $test) {
+            if (!array_key_exists($testKey, $test)) {
+                continue;
+            }
+
+            if (!$test[$testKey]) {
+                continue;
+            }
+
+            ++$testCount;
+        }
+
+        $filecontentV1 = '"use strict";
 
 var assert = require(\'assert\'),
     Browscap = require(\'../browscap.js\'),
     browscap = new Browscap(),
     browser;
 
-suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (1 !== count($tests) ? 's' : '') . ')\', function () {
+suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !== $testCount ? 's' : '') . ')\', function () {
+';
+
+        $filecontentV3 = '\'use strict\';
+
+const assert = require(\'assert\');
+const Browscap = require(\'../src/index.js\');
+
+suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !== $testCount ? 's' : '') . ')\', function () {
 ';
 
         $propertyHolder = new PropertyHolder();
@@ -116,8 +138,12 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (1
             $rule = $test['ua'];
             $rule = str_replace(['\\', '"'], ['\\\\', '\"'], $rule);
 
-            $filecontent .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
-            $filecontent .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
+            $filecontentV1 .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
+            $filecontentV1 .= '    browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
+
+            $filecontentV3 .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
+            $filecontentV3 .= '    const browscap = new Browscap();' . "\n";
+            $filecontentV3 .= '    const browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
             foreach ($test['properties'] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property, $writer)) {
@@ -152,14 +178,21 @@ suite(\'checking for issue ' . $testnumber . ' (' . count($tests) . ' test' . (1
                 }
 
                 $message = "'Expected actual \"${property}\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['${property}'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
-                $filecontent .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
+                $filecontentV1 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
+                $filecontentV3 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }
 
-            $filecontent .= '  });' . "\n";
+            $filecontentV1 .= '  });' . "\n";
+            $filecontentV3 .= '  });' . "\n";
         }
 
-        $filecontent .= '});' . "\n";
+        $filecontentV1 .= '});' . "\n";
+        $filecontentV3 .= '});' . "\n";
 
-        file_put_contents($buildFolder . $filename, $filecontent);
+        file_put_contents($buildFolder . 'v1/' . $filename, $filecontentV1);
+        file_put_contents($buildFolder . 'v3/' . $filename, $filecontentV3);
+
+        $writer->close();
+        unlink($buildFolder . 'dummy.json');
     }
 }

@@ -101,6 +101,14 @@ class BuildJsonCommand extends Command
             mkdir($buildFolder . 'test/', 0775, true);
         }
 
+        if (!file_exists($buildFolder . 'test/v1/')) {
+            mkdir($buildFolder . 'test/v1/', 0775, true);
+        }
+
+        if (!file_exists($buildFolder . 'test/v3/')) {
+            mkdir($buildFolder . 'test/v3/', 0775, true);
+        }
+
         $cacheAdapter = new JsonFile([JsonFile::DIR => $buildFolder . 'sources/']);
         $cache        = new JsonCache($cacheAdapter);
 
