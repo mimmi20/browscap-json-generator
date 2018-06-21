@@ -2,7 +2,9 @@
   "name": "mimmi20/browscap-json-generator",
   "type": "application",
   "description": "Browser Capabilities Tools",
-  "keywords": ["browscap"],
+  "keywords": [
+    "browscap"
+  ],
   "homepage": "https://github.com/mimmi20/browscap-json-generator",
   "license": "MIT",
   "authors": [
@@ -16,24 +18,20 @@
       "homepage": "https://github.com/mimmi20/browscap-json-generator/graphs/contributors"
     }
   ],
-  "support": {
-    "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
-    "source": "https://github.com/mimmi20/browscap-json-generator"
-  },
   "require": {
     "php": "^7.1",
-    "browscap/browscap-php": "^3.1",
-    "browscap/browscap": "^6.0.28",
-    "mimmi20/browscap-json-cache": "^1.0.4",
-    "symfony/console": "^3.3||^4.0",
     "beberlei/assert": "^2.9",
+    "browscap/browscap": "^6.0.29",
+    "browscap/browscap-php": "^3.1",
+    "mimmi20/browscap-json-cache": "^1.0.4",
+    "symfony/console": "^3.3 || ^4.0",
     "thadafinser/package-info": "^1.0"
   },
   "require-dev": {
-    "squizlabs/php_codesniffer": "^3.2",
-    "friendsofphp/php-cs-fixer": "^2.10 || ^3.0",
+    "friendsofphp/php-cs-fixer": "^2.12",
     "localheinz/composer-normalize": "^0.6.0",
-    "phpstan/phpstan": "^0.9"
+    "phpstan/phpstan": "^0.9",
+    "squizlabs/php_codesniffer": "^3.3"
   },
   "autoload": {
     "psr-4": {
@@ -45,5 +43,11 @@
       "BrowscapTest\\": "tests/"
     }
   },
-  "bin": ["bin/browscap-with-json"]
+  "bin": [
+    "bin/browscap-with-json"
+  ],
+  "support": {
+    "issues": "https://github.com/mimmi20/browscap-json-generator/issues",
+    "source": "https://github.com/mimmi20/browscap-json-generator"
+  }
 }
