@@ -18,10 +18,10 @@ use Symfony\Component\Console\Application;
  *
  * @category   BrowscapWithJson
  */
-class BrowscapWithJson extends Application
+final class BrowscapWithJson extends Application
 {
     /**
-     * BrowscapWithJson constructor.
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct()
     {

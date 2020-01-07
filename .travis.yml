@@ -1,11 +1,11 @@
 language: php
 sudo: false
-dist: trusty
 
 php:
   - 7.1
   - 7.2
-  - nightly
+  - 7.3
+  - 7.4
 
 os: linux
 
@@ -26,6 +26,8 @@ before_install:
   - phpenv config-rm xdebug.ini || echo "xdebug not available"
   - echo 'opcache.enable=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - echo 'opcache.enable_cli=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - echo 'zend.assertions=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo 'assert.exception=On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - travis_retry composer self-update
 
 install: travis_retry composer update --optimize-autoloader --prefer-dist --prefer-stable --no-progress --no-interaction --no-suggest $COMPOSER_FLAGS -vv
@@ -41,8 +43,9 @@ jobs:
 
     - stage: composer validate
       php: 7.1
-      install: skip
-      script: composer validate
+      script:
+        - composer validate
+        - composer normalize --dry-run
 
     - stage: static code analysis
       php: 7.1
@@ -57,7 +60,7 @@ jobs:
     - stage: static code analysis
       php: 7.1
       env: TEST=phpstan
-      script: vendor/bin/phpstan analyse -l 7 -c phpstan.neon --autoload-file=vendor/autoload.php --memory-limit=768M --no-progress src
+      script: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=768M --no-progress
 
 notifications:
   email: false

@@ -26,7 +26,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class BuildJsonCommand extends Command
+final class BuildJsonCommand extends Command
 {
     /**
      * @var string
@@ -40,6 +40,8 @@ class BuildJsonCommand extends Command
 
     /**
      * Configures the current command.
+     *
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      *
      * @return void
      */
@@ -124,7 +126,7 @@ class BuildJsonCommand extends Command
             $dataCollectionFactory
         );
 
-        $buildGenerator->run((string) $version, false);
+        $buildGenerator->run((string) $version, new \DateTimeImmutable(), false);
 
         $output->writeln('Build done.');
         $output->writeln('Converting started.');
