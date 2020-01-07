@@ -16,7 +16,7 @@ use Browscap\Writer\JsonWriter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-class BrowscapJsonGenerator
+final class BrowscapJsonGenerator
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -62,7 +62,7 @@ class BrowscapJsonGenerator
         $iterator        = new \RecursiveDirectoryIterator($sourceDirectory);
 
         foreach (new \RecursiveIteratorIterator($iterator) as $file) {
-            /** @var $file \SplFileInfo */
+            /** @var \SplFileInfo $file */
             if (!$file->isFile() || 'php' !== $file->getExtension()) {
                 continue;
             }
@@ -177,7 +177,7 @@ suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !=
                         break;
                 }
 
-                $message = "'Expected actual \"${property}\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['${property}'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
+                $message = "'Expected actual \"{$property}\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['{$property}'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
                 $filecontentV1 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
                 $filecontentV3 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }

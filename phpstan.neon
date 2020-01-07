@@ -1,9 +1,40 @@
 parameters:
+  level: max
+  paths:
+    - src
+    - tests
   autoload_files:
+    - %currentWorkingDirectory%/vendor/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
   excludes_analyse:
     - */tests/*/data/*
+  exceptionRules:
+    reportUnusedCatchesOfUncheckedExceptions: true
+    uncheckedExceptions: []
+  ergebnis:
+    classesAllowedToBeExtended:
+      - Symfony\Component\Console\Application
+      - Symfony\Component\Console\Command\Command
+      - Symfony\Component\Console\Helper\Helper
+      - Symfony\Component\Filesystem\Filesystem
+      - BrowscapPHP\Exception
+      - BrowscapPHP\Exception\DomainException
+      - InvalidArgumentException
+      - DomainException
+      - Exception
   ignoreErrors:
 #    - '~MockObject~'
-#    - '~Parameter #1 \$headers of method BrowserDetector\Detector::getBrowser\(\) expects mixed\[\]|Psr\Http\Message\MessageInterface|string, stdClass given.~'
+    - '~is not compatible with parent~'
+    - '~Useless @throws~'
+    - '~constructor expects string, array\<string\>\|bool\|string\|null given~'
+    - '~Control structures using switch should not be used~'
+    - '~expects string, .*Exception given~'
+    - '~Binary operation \"\.\" between array\<string\>\|bool\|string\|null and .* results in an error~'
+
+includes:
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
+  - vendor/pepakriz/phpstan-exception-rules/extension.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  - vendor/phpstan/phpstan-beberlei-assert/extension.neon
+  - vendor/ergebnis/phpstan-rules/rules.neon
