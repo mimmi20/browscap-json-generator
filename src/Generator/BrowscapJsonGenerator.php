@@ -85,9 +85,9 @@ final class BrowscapJsonGenerator
      */
     private function createTestFile(\SplFileInfo $file, string $buildFolder): void
     {
-        $filenameV13   = str_replace('.php', '.js', $file->getFilename());
-        $filenameV5   = str_replace('.php', '.ts', $file->getFilename());
-        $testnumber = str_replace('issue-', '', $file->getBasename($file->getExtension()));
+        $filenameV13 = str_replace('.php', '.js', $file->getFilename());
+        $filenameV5  = str_replace('.php', '.ts', $file->getFilename());
+        $testnumber  = str_replace('issue-', '', $file->getBasename($file->getExtension()));
 
         $tests   = require_once $file->getPathname();
         $testKey = 'full';
