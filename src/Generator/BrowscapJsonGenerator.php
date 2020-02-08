@@ -85,7 +85,8 @@ final class BrowscapJsonGenerator
      */
     private function createTestFile(\SplFileInfo $file, string $buildFolder): void
     {
-        $filename   = str_replace('.php', '.js', $file->getFilename());
+        $filenameV13   = str_replace('.php', '.js', $file->getFilename());
+        $filenameV5   = str_replace('.php', '.ts', $file->getFilename());
         $testnumber = str_replace('issue-', '', $file->getBasename($file->getExtension()));
 
         $tests   = require_once $file->getPathname();
@@ -123,6 +124,13 @@ const Browscap = require(\'../src/index.js\');
 suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !== $testCount ? 's' : '') . ')\', function () {
 ';
 
+        $filecontentV5 = '
+import assert from \'assert\';
+import Browscap from \'../src/browscap.ts\';
+
+suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !== $testCount ? 's' : '') . ')\', function () {
+';
+
         $propertyHolder = new PropertyHolder();
         $writer         = new JsonWriter($buildFolder . 'dummy.json', $this->getLogger());
 
@@ -144,6 +152,10 @@ suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !=
             $filecontentV3 .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
             $filecontentV3 .= '    const browscap = new Browscap();' . "\n";
             $filecontentV3 .= '    const browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
+
+            $filecontentV5 .= '  test(\'' . $key . ' ["' . addcslashes($rule, "'") . '"]\', function () {' . "\n";
+            $filecontentV5 .= '    let browscap = new Browscap();' . "\n";
+            $filecontentV5 .= '    let browser = browscap.getBrowser(\'' . addcslashes($rule, "'") . '\');' . "\n\n";
 
             foreach ($test['properties'] as $property => $value) {
                 if (!$propertyHolder->isOutputProperty($property, $writer)) {
@@ -180,17 +192,21 @@ suite(\'checking for issue ' . $testnumber . ' (' . $testCount . ' test' . (1 !=
                 $message = "'Expected actual \"{$property}\" to be " . addcslashes($valueOutput, "'\\") . " (was \\'' + browser['{$property}'] + '\\'; used pattern: ' + browser['browser_name_regex'] + ')'";
                 $filecontentV1 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
                 $filecontentV3 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
+                $filecontentV5 .= '    assert.strictEqual(browser[\'' . $property . '\'], ' . $valueOutput . ', ' . $message . ');' . "\n";
             }
 
             $filecontentV1 .= '  });' . "\n";
             $filecontentV3 .= '  });' . "\n";
+            $filecontentV5 .= '  });' . "\n";
         }
 
         $filecontentV1 .= '});' . "\n";
         $filecontentV3 .= '});' . "\n";
+        $filecontentV5 .= '});' . "\n";
 
-        file_put_contents($buildFolder . 'v1/' . $filename, $filecontentV1);
-        file_put_contents($buildFolder . 'v3/' . $filename, $filecontentV3);
+        file_put_contents($buildFolder . 'v1/' . $filenameV13, $filecontentV1);
+        file_put_contents($buildFolder . 'v3/' . $filenameV13, $filecontentV3);
+        file_put_contents($buildFolder . 'v5/' . $filenameV5, $filecontentV5);
 
         $writer->close();
         unlink($buildFolder . 'dummy.json');
