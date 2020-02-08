@@ -71,11 +71,11 @@ final class BuildJsonCommand extends Command
      * @throws \BrowscapPHP\Exception
      * @throws \Exception
      *
-     * @return int|null null or 0 if everything went fine, or an error code
+     * @return int 0 if everything went fine, or an error code
      *
      * @see    setCode()
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $loggerHelper = new LoggerHelper();
         $logger       = $loggerHelper->create($output);
@@ -109,6 +109,10 @@ final class BuildJsonCommand extends Command
 
         if (!file_exists($buildFolder . 'test/v3/')) {
             mkdir($buildFolder . 'test/v3/', 0775, true);
+        }
+
+        if (!file_exists($buildFolder . 'test/v5/')) {
+            mkdir($buildFolder . 'test/v5/', 0775, true);
         }
 
         $cacheAdapter = new JsonFile([JsonFile::DIR => $buildFolder . 'sources/']);
